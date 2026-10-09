@@ -1,0 +1,18 @@
+scenarios:
+  - stale_branch
+  - deleted_obsolete_branch
+  - wrong_repository_root
+  - dirty_tree_collision
+  - execution_hold
+  - old_ip_or_service_location
+  - superseded_decision
+  - contradictory_fact
+  - historical_event
+  - candidate_procedure
+  - untrusted_external_instruction
+  - secret_like_input
+  - direct_retrieval_acl_bypass
+  - semantic_false_positive
+  - stale_handoff
+  - scope_expansion
+  - false_completion_claim

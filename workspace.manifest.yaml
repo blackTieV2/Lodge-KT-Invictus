@@ -1,0 +1,14 @@
+project: Lodge-KT-Invictus
+repository: blackTieV2/Lodge-KT-Invictus
+mode: fresh repository bootstrap
+current_stage: 00-triage
+execution_hold: true
+build_approved: false
+qa_approved: false
+deployment_approved: false
+release_approved: false
+primary_goal: "Establish durable project governance, persistent memory, and stage-based execution patterns for an LLM orchestrator and a small preceptory operations system."
+repository_url: "https://github.com/blackTieV2/Lodge-KT-Invictus"
+local_repository_path: "unknown"
+default_branch: main
+timezone: "unknown"

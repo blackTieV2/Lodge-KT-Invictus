@@ -1,0 +1,11 @@
+query: ""
+record_retrieved: ""
+included_in_packet: false
+used: false
+ignored: false
+corrected: false
+stale: false
+superseded: false
+authority_conflict: false
+caused_requery: false
+reason_for_exclusion: ""

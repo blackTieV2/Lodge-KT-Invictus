@@ -1,0 +1,22 @@
+{
+  "event_id": "",
+  "run_id": "",
+  "project": "Lodge-KT-Invictus",
+  "timestamp": "",
+  "actor": {
+    "type": "",
+    "identity": "",
+    "model": ""
+  },
+  "action": "",
+  "target": "",
+  "parent_event": null,
+  "cause_event": null,
+  "idempotency_key": "",
+  "source": {
+    "path": "",
+    "hash": ""
+  },
+  "result": "",
+  "evidence_hash": ""
+}

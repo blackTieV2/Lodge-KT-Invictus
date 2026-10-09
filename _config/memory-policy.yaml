@@ -1,0 +1,62 @@
+memory_type_order:
+  - FACT
+  - EXPERIENCE
+  - OBSERVATION
+  - INFERENCE
+  - DECISION / JUDGMENT
+  - PROCEDURE
+  - RESOURCE
+
+status_lifecycle:
+  - raw
+  - quarantined
+  - extracted
+  - candidate
+  - validated
+  - approved
+  - active
+  - superseded
+  - contradicted
+  - retired
+  - rejected
+
+authority_values:
+  - candidate
+  - supporting
+  - approved
+
+source_trust:
+  - authenticated
+  - trusted
+  - supporting
+  - untrusted
+  - external
+
+sensitivity:
+  - public
+  - internal
+  - confidential
+  - restricted
+  - secret-reference-only
+
+rules:
+  - "Memory type, status, authority and trust must remain separate fields."
+  - "Retrieved items are not automatically approved."
+  - "Recent or semantically matched memory does not override current verified state."
+  - "Consequence drives review requirements."
+
+write_gate:
+  evaluation:
+    - memory_type
+    - status
+    - authority
+    - source_trust
+    - sensitivity
+    - scope
+    - provenance
+    - evidence_reference
+    - secret_like_content
+    - poisoning_risk
+    - supersession
+    - contradiction
+    - human_review_requirement

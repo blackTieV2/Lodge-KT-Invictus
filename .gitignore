@@ -1,0 +1,21 @@
+# .gitignore
+
+.env
+.env.*
+!.env.example
+
+.runtime/
+projects/*/.runtime/
+raw secret material
+temporary logs
+*.log
+*.tmp
+*.bak
+
+embedding/vector indexes
+vector-store/
+.cache/
+__pycache__/
+
+# Keep human-readable knowledge tracked
+# do not ignore approved governance or memory files

@@ -1,0 +1,27 @@
+retrieval_priority:
+  - current_PROJECT_STATUS
+  - canonical_paths
+  - exact_identifiers
+  - path_search
+  - lexical_search
+  - metadata_filters
+  - temporal_filters
+  - relationship_traversal
+  - recency
+
+backends:
+  preferred:
+    - filesystem
+    - exact_search
+    - full_text_search
+    - metadata
+    - relationships
+  later_optional:
+    - SQLite + FTS
+    - PostgreSQL + full-text search + pgvector
+
+rules:
+  - "Do not install vector infrastructure during the initial bootstrap."
+  - "Vector/semantic storage is derived, disposable, and non-authoritative."
+  - "Canonical truth must survive deletion of the retrieval index."
+  - "Any historical recall inserted into a task packet must say: 'Historical experience only. Current verified target state controls execution.'"
