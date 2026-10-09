@@ -4,42 +4,54 @@
 project: Lodge-KT-Invictus
 repository: blackTieV2/Lodge-KT-Invictus
 checkpoint_date: 2026-10-09
-current_stage: 01-intake
-current_task: "Align the reduced status-app intake with the existing frontend; seek approval before the next design increment."
-review_branch: docs/intake-status-app-review
+current_stage: 03-design
+current_task: "Intake approved; review the minimal first private-register handover design."
+review_branch: docs/approved-intake-local-handover-design
 baseline:
   branch: main
-  head: be1fea1e756a307fd18fa22377044edada0438a2
-  merged_pr: 3
+  head: 23b03a67bcbdba19a9b872c1fcd524b6764d01b9
+  merged_intake_pr: 4
+  merged_frontend_pr: 3
   frontend_exists: true
   file_schema_version: 1
   repository_visibility: public
 existing_frontend_verification:
   workflow: Register checks
-  run_id: 37908807448
-  head: be1fea1e756a307fd18fa22377044edada0438a2
+  run_id: 37910612433
+  job_id: 113754585447
+  head: 23b03a67bcbdba19a9b872c1fcd524b6764d01b9
   observed_conclusion: success
   successful_steps:
     - core regression tests
     - portable-page build
     - browser workflow over localhost
     - browser workflow as a local file
-  note: "Observed existing CI evidence; not a new local test run or data certification."
+  note: "Observed existing CI evidence; not a new local run or private-data certification."
 intake:
   document: stages/01-intake/REGISTER-SCOPE.md
   revision: "1.1"
-  status: awaiting_human_approval
-  approved_by: null
-  approval_reference: null
+  status: approved
+  approved_by: "Product owner / repository owner, explicit conversation reply"
+  approved_on: 2026-10-09
+  approval_text: "Yes. Approved"
+  approval_reference: "PR #4, issue comment 6078163866"
+  approved_scope_head: a60c75cd4db3e2e558ef5ee5672dd82ec266b478
+design:
+  document: stages/03-design/LOCAL-REGISTER-HANDOVER.md
+  preparation_authorised: true
+  acceptance_status: awaiting_human_approval
+  proposed_delta: "No app or schema redesign; validate existing frontend and prepare reviewed private data and local-use handover."
 execution_hold: true
-execution_hold_scope: "Further design/build, schema changes, backend, hosting, deployment, release and private-data publication."
+execution_hold_scope: "New app/schema changes, real-data conversion, packaging/release, backend, hosting, deployment and private-data publication until the applicable next approval."
 allowed_now:
-  - scope and intake documentation
+  - recording the explicit intake approval
+  - bounded design preparation and documentation
   - read-only repository and CI verification
   - documentation validation and review
   - preservation of the already merged frontend
-new_design_approved: false
 new_build_approved: false
+private_conversion_approved: false
+local_package_approved_for_next_increment: false
 deployment_approved: false
 release_approved: false
 private_data_publication_approved: false
@@ -49,7 +61,7 @@ known_limits:
   - "No automatic KOL, official account, membership or correspondence actions."
   - "No real register is bundled; initial reviewed conversion remains separate."
   - "Local history is not tamper-proof; browser storage is not a backup."
-next_safe_action: "Obtain explicit approval of REGISTER-SCOPE.md before assessing the next bounded design increment."
+next_safe_action: "Obtain design acceptance and explicit private conversion/local packaging approval for LOCAL-REGISTER-HANDOVER.md, then execute that bounded work package without another intake."
 ```
 
-The prior local-frontend build is preserved. Returning the active work item to intake does not delete the app, undo PR #3 or claim that its earlier approval was absent. It prevents old scope-exception wording from authorising additional work automatically. Generic platform, backend and deployment holds remain in place.
+PR #4 was already merged when the human approval was processed. This change records the approval and advances only the active design work item. It does not undo PR #3, rebuild the app, certify private records or remove the broader execution holds. The approved product scope is not reopened by this checkpoint.

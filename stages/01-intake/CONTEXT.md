@@ -1,22 +1,11 @@
-# 01-intake — lightweight member-status app
+# 01-intake — approved lightweight member-status app
 
-The active task is the small Invictus status-lookup app, not the original durable LLM operations-platform proposal.
+`REGISTER-SCOPE.md` revision 1.1 was explicitly approved by the product owner on 9 October 2026 with "Yes. Approved", including the local-file, one-editor-at-a-time approach. Reference: PR #4, issue comment 6078163866. Intake is complete for this bounded product; do not reopen the same scope question.
 
-Read `REGISTER-SCOPE.md` in this directory as the consolidated intake. It defines the product goal, users, scope, practical preceptory model, frontend/backend/human responsibilities, memory categories, event records, privacy limits and acceptance/approval gate.
+The approved scope is one small private status register for the Registrar, Treasurer and optionally Preceptor. No domain, hosting expenditure, mandatory cloud setup, shared backend, live synchronisation or enforced application roles. The Statutes control the rules; imported claims remain qualified. Private member and account data stays outside this public repository.
 
-The local-file frontend from PR #3 already exists on `main`. Preserve it. This stage reconciles the intake with that live state and the user's proposed approval-first sequence; it does not authorise a new implementation.
+The frontend from PR #3 and the intake from PR #4 are already merged. Preserve the existing app and v1 private-file contract.
 
-## Constraints
+## Next gate
 
-- One Preceptory; primarily Registrar and Treasurer, optionally Preceptor.
-- No custom/purchased domain, mandatory cloud setup or hosting expenditure.
-- Recommended v1: local browser interface plus a separately held private file; no server.
-- One editor at a time; no live multi-user synchronisation or enforced application roles.
-- Repository is public: no operational member data, private sources or encrypted real-data exports in GitHub.
-- Statutes of Great Priory control the rules; working records and user reports have their own evidence basis.
-
-## Gate
-
-Intake approval is pending for the next increment. Documentation and read-only verification may continue. Do not start further design/build, change the private-file schema or deploy anything until the applicable explicit approval is recorded.
-
-Existing design and format references are `stages/03-design/REGISTER-DESIGN.md` and `docs/REGISTER-DATA-MODEL.md` from the repository root. They describe prior work, not automatic approval for a new increment.
+Approval permits bounded design preparation. The proposed next increment is `stages/03-design/LOCAL-REGISTER-HANDOVER.md`: reuse existing code, prepare the first reviewed private register and package it for local use only after that work package is authorised. New app/schema changes, conversion, packaging/release and deployment are not authorised by intake approval alone.

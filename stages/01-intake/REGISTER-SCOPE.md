@@ -1,8 +1,10 @@
 # Intake: Invictus member-status app
 
-Status: **DRAFT FOR HUMAN APPROVAL — no further design or build authorised by this document.**
+Status: **APPROVED — bounded design preparation may proceed; new build, private conversion and release require the next approval.**
 
 Revision: 1.1 | Prepared: 9 October 2026 | Product owner: repository owner
+
+Approval recorded: 9 October 2026. Product owner: **"Yes. Approved"**, in response to explicit approval of this intake including local-file, one-editor-at-a-time use. Reference: [PR #4 approval record](https://github.com/blackTieV2/Lodge-KT-Invictus/pull/4#issuecomment-6078163866). The product scope below is unchanged; approval/status text has been updated.
 
 ## 1. The product we intend to deliver
 
@@ -16,7 +18,7 @@ The user's reduced scope supersedes the earlier large-platform proposal for this
 
 PR #3 is already merged into `main` at `be1fea1e756a307fd18fa22377044edada0438a2`. It contains a local HTML/CSS/JavaScript frontend, a v1 private-file contract and a bounded design. Preserve that work. This intake aligns and completes the product definition; it does not pretend the frontend has yet to be written or retrospectively certify every existing design choice.
 
-The earlier scope treated delegated sequencing as build authority. For the next increment, use the explicit approval gate in section 10. Do not infer new approval from this draft, a successful test, an old handoff or the phrase "continue" alone.
+The earlier scope treated delegated sequencing as build authority. For the next increment, use the explicit approval gate in section 10. Do not infer new build approval from this document, a successful test, an old handoff or the phrase "continue" alone.
 
 ## 2. Smallest useful scope
 
@@ -147,10 +149,12 @@ These are acceptance requirements, not a claim that every case was retested duri
 
 ## 10. Approval and next action
 
-Intake approval: **PENDING**. Approver, date and reference: **not yet recorded**.
+Intake approval: **APPROVED on 9 October 2026 by the product owner / repository owner.**
 
-Recommended decisions for approval: retain the existing local-file frontend; no backend or custom domain for v1; keep the small working-summary model rather than full accounting; use one-editor-at-a-time file handover; prepare any real-data conversion privately and review it before import.
+Human response: **"Yes. Approved"** to the explicit question approving this intake, including local-file, one-editor-at-a-time use. Durable reference: [PR #4 approval record](https://github.com/blackTieV2/Lodge-KT-Invictus/pull/4#issuecomment-6078163866). Approved scope baseline: revision 1.1 at `a60c75cd4db3e2e558ef5ee5672dd82ec266b478`, merged as `23b03a67bcbdba19a9b872c1fcd524b6764d01b9`.
+
+Accepted decisions: retain the existing local-file frontend; no backend or custom domain for v1; keep the small working-summary model rather than full accounting; use one-editor-at-a-time file handover; prepare any real-data conversion privately and review it before import.
 
 The material trade-off is file handover. If the officers need live, simultaneous updates, this local-file scope is insufficient and shared storage must be explicitly added before design. No automatic syncing is promised.
 
-Record explicit human intake approval here before starting further design. Intake approval permits the next bounded design review; it is not blanket build, hosting, release or private-data publication permission. Reuse and assess the already merged frontend rather than rebuilding it. Existing code may remain available; no app, workflow, schema, repository-visibility or deployment change is made by this intake alignment.
+This approval permits the next bounded design review; it is not blanket build, hosting, release or private-data publication permission. Reuse and assess the already merged frontend rather than rebuilding it. The proposed next work package is documented in `stages/03-design/LOCAL-REGISTER-HANDOVER.md`; its design acceptance and private conversion/packaging approval remain pending. No app, workflow, schema, repository-visibility or deployment change is made by recording this approval.
