@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Invictus · The Register</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to register</a>
+<aside class="sidebar">
+ <div class="brand"><span class="crest" aria-hidden="true">✠</span><div>INVICTUS<small>PRECEPTORY No. 724</small></div></div>
+ <div class="side-label">OFFICERS' WORKSPACE</div>
+ <nav aria-label="Main navigation">
+  <button class="nav active" data-view="register"><span aria-hidden="true">▤</span>The register</button>
+  <button class="nav" data-view="registrar"><span aria-hidden="true">▱</span>Registrar actions <b id="nav-reg"></b></button>
+  <button class="nav" data-view="treasurer"><span aria-hidden="true">◇</span>Treasurer actions <b id="nav-treas"></b></button>
+  <button class="nav" data-view="gp"><span aria-hidden="true">£</span>GP cost review</button>
+  <button class="nav" data-view="history"><span aria-hidden="true">◷</span>Change history</button>
+  <button class="nav" data-view="files"><span aria-hidden="true">▣</span>Files &amp; privacy</button>
+ </nav>
+ <div class="side-bottom"><span class="local-dot"></span>Local file workspace<p>No server. No shared sync.<br>Your records stay in this browser until you export them.</p><button class="text-button" id="close-workspace">Close register</button></div>
+</aside>
+<div class="shell">
+ <header class="topbar"><span>Invictus Preceptory &amp; Priory <strong>No. 724</strong></span><div class="top-actions"><span id="save-state" class="save-state">No register open</span><button class="button" id="open-file">Open file</button><button class="button primary" id="save-file">Save private copy</button></div></header>
+ <main id="main" tabindex="-1"><div id="workspace"></div></main>
+ <footer>Private administrative working view <span>Statutes of Great Priory govern. This page does not update Keystone or the Treasurer’s books.</span></footer>
+</div>
+<input id="file-input" type="file" accept=".json,.invictus,application/json" hidden>
+<dialog id="member-dialog" class="member-dialog" aria-labelledby="member-title"><div id="member-content"></div></dialog>
+<dialog id="file-dialog" class="file-dialog" aria-labelledby="file-title"><form id="file-form"><div class="modal-head"><div><span class="eyebrow">PRIVATE REGISTER FILE</span><h2 id="file-title">Save a private copy</h2></div><button type="button" class="icon-button" data-close="file-dialog" aria-label="Close file dialog">×</button></div><div id="file-description"></div><label class="field">Passphrase<input id="passphrase" type="password" autocomplete="new-password" maxlength="256" required></label><label class="field" id="confirm-wrap">Confirm passphrase<input id="passphrase-confirm" type="password" autocomplete="new-password" maxlength="256"></label><label class="check" id="remember-wrap"><input id="remember" type="checkbox">Also remember this encrypted copy in this browser</label><p id="file-error" class="error" role="alert"></p><div class="modal-actions"><button type="button" class="button" data-close="file-dialog">Cancel</button><button id="file-submit" class="button primary" type="submit">Save encrypted file</button></div></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="core.js"></script><script src="ui.js"></script>
+</body></html>
