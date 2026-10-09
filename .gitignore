@@ -20,7 +20,7 @@ __pycache__/
 # Keep human-readable knowledge tracked
 # do not ignore approved governance or memory files
 
-# Runtime records and private evidence never belong in this public repository.
+# Private source tracking requires explicit approval AFTER verified private visibility.
 private/
 private-data/
 *.invictus
@@ -35,3 +35,9 @@ dist/
 qa-*.png
 private-*.png
 .DS_Store
+online-dist/
+.wrangler/
+.online-wrangler.json
+.online-secrets.json
+.dev.vars
+.dev.vars.*
