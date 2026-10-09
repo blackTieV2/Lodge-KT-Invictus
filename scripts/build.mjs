@@ -1,0 +1,13 @@
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { resolve, dirname } from 'node:path';
+const root=resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const read=path=>readFile(resolve(root,path),'utf8');
+const [html,css,core,ui]=await Promise.all(['app/index.html','app/styles.css','app/core.js','app/ui.js'].map(read));
+const hash=s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`;
+const policy=`default-src 'none'; script-src ${hash(core)} ${hash(ui)}; style-src ${hash(css)}; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
+const bundled=html.replace(/content="default-src[^\"]*"/,`content="${policy}"`).replace('<link rel="stylesheet" href="styles.css">',`<style>${css}</style>`).replace('<script src="core.js"></script><script src="ui.js"></script>',`<script>${core}</script><script>${ui}</script>`);
+await mkdir(resolve(root,'dist'),{recursive:true});
+await writeFile(resolve(root,'dist/Invictus.html'),bundled);
+console.log('Built dist/Invictus.html (offline, no member data).');

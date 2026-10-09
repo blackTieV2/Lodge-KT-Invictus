@@ -1,40 +1,11 @@
 # CONTEXT.md
 
-This repository is a governance and memory scaffold for a project that blends:
-- a persistent memory architecture for an LLM orchestrator;
-- a small database-backed operational backend;
-- a front-end web experience for a preceptory or lodge-facing site;
-- a knowledge system for Invictus Preceptory #724.
+This repository retains its governed, model-neutral project scaffold. The current bounded task is a local-first member-status front end for the Registrar, Treasurer and optionally Preceptor, following the user's explicit reduction of the larger platform proposal.
 
-## Task to stage mapping
+Read AGENTS.md, PROJECT_STATUS.md, stages/01-intake/REGISTER-SCOPE.md and stages/03-design/REGISTER-DESIGN.md before touching the frontend. The scoped human instruction permits this frontend build, validation and local-use package only; it does not remove broader backend, deployment or private-data publication holds.
 
-- task is vague or uncertain -> 00-triage
-- need to define goals and constraints -> 01-intake
-- need evidence or external facts -> 02-research
-- need architecture or implementation design -> 03-design
-- need code or repository change -> 04-build
-- need validation or testing -> 05-qa
-- need report or handoff -> 06-handoff
+Application code is under app/. The browser loads a separately supplied private register file. There is no live shared backend, external integration or LLM memory engine. Do not describe local file saving as synchronisation or edit-history entries as independently verified official acts.
 
-## Current phase
+Source of rule authority: the Statutes of Great Priory of England and Wales and its Provinces Overseas. Runtime source claims and user decisions remain distinguishable from statutory authority. Private membership records and source evidence must never be committed to this public repository.
 
-This repository is in 00-triage. The immediate objective is governance installation and evidence-preserving project structure, not implementation.
-
-## Current project profile
-
-Project: Lodge-KT-Invictus
-Purpose: durable memory + operational knowledge system for an LLM orchestrator supporting preceptory administration and a small web experience.
-Audience: project maintainers, future AI agents, and human operators.
-Constraints: model neutrality, evidence-based operation, no secrets, current live state governs.
-
-## Important guardrails
-
-- Do not implement application features before intake and design approval.
-- Keep the repo model-neutral and portable.
-- Distinguish raw evidence from approved memory.
-- Keep a controlled, bounded task packet for each run.
-- Prefer filesystem-based memory, metadata, and explicit governance over hidden inference.
-
-## Stage boundary
-
-This file routes work to the correct stage. It does not become a giant knowledge dump.
+The original stage scaffold remains for future approved work. Use docs/REGISTER-DATA-MODEL.md for the current private file contract and README.md for actual startup/testing steps.

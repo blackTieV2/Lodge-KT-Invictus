@@ -19,3 +19,19 @@ __pycache__/
 
 # Keep human-readable knowledge tracked
 # do not ignore approved governance or memory files
+
+# Runtime records and private evidence never belong in this public repository.
+private/
+private-data/
+*.invictus
+Invictus-register-*.json
+Invictus-Private-Register*.json
+*.xlsx
+*.xls
+*.csv
+*.pdf
+node_modules/
+dist/
+qa-*.png
+private-*.png
+.DS_Store
