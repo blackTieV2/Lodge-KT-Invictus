@@ -30,7 +30,8 @@ try {
   // A trap file at repository root and private/ must not enter the image/build context.
   run(); await ready();
   exec("import {existsSync} from 'node:fs'; for (const p of ['/opt/invictus/.git','/opt/invictus/private','/opt/invictus/.env','/opt/invictus/DO-NOT-SHIP.txt','/opt/invictus/tests']) if(existsSync(p))process.exit(1);");
-  exec("const r=await fetch('http://127.0.0.1:8080/api/register',{headers:{Host:'invictus.layer-8-labs.com'}}); if(r.status!==401)process.exit(1);");
+  // Use raw HTTP for explicit virtual-host probes: do not depend on fetch's Host handling.
+  exec("import http from 'node:http'; import assert from 'node:assert/strict'; for(const [host,expected] of [['invictus.layer-8-labs.com',401],['unconfigured.example.invalid',421]]) { const status=await new Promise((resolve,reject)=>{const q=http.get({hostname:'127.0.0.1',port:8080,path:'/api/register',headers:{Host:host}},r=>{r.resume();r.on('end',()=>resolve(r.statusCode));});q.on('error',reject);}); assert.equal(status,expected,'Unexpected unauthenticated status for '+host); }");
   // Test-only direct database fixture. No such bypass is exposed by the HTTP app.
   exec("import './app/core.js'; import {RegisterDatabase} from './homelab/storage.mjs'; const db=new RegisterDatabase('/data/register.sqlite'); const d=Invictus.demo(); d.revision=1; await db.prepare('INSERT INTO register_state VALUES (1,1,?,?,?,?,?)').bind(JSON.stringify(d),new Date().toISOString(),'CI','Synthetic restart test','No real data').run(); db.close();");
   docker(['stop', name]); docker(['rm', name]); run(); await ready();
