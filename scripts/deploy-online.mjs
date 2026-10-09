@@ -2,6 +2,7 @@
 import { readFile, writeFile, rm } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import '../app/core.js';
+import { officerPolicyUpdate } from './access-policy.mjs';
 const C=globalThis.Invictus, WRANGLER='wrangler@4.149.0';
 const account=process.env.CLOUDFLARE_ACCOUNT_ID,token=process.env.CLOUDFLARE_API_TOKEN;
 if(!/^[a-f0-9]{32}$/.test(account||'')||!token)throw Error('Cloudflare account authorisation is required. Set the deployment secrets; no local commands are needed.');
@@ -22,7 +23,11 @@ const apps=await cf('access/apps?per_page=100');let app=apps.find(x=>x.domain===
 if(app&&app.name!=='Invictus Online Register')throw Error('This hostname has another Access application. Review it before proceeding; nothing was overwritten.');
 if(!app)app=await cf('access/apps','POST',{type:'self_hosted',name:'Invictus Online Register',domain,session_duration:'8h',policies:[{name:'Invictus named officers',decision:'allow',include:Object.keys(roles).map(email=>({email:{email}}))}]});
 if(!app.aud)throw Error('Access audience was not returned. Deployment stopped.');
-// Existing Access policies are deliberately not replaced: preserve MFA/deny rules.
+// Reconcile only the managed officer include list. Preserve its MFA/exclusion/
+// approval conditions and all unrelated policies; never replace the entire app.
+const policyPath=`access/apps/${app.id}/policies`;
+const update=officerPolicyUpdate(await cf(policyPath),roles);
+if(update.changed)await cf(`${policyPath}/${update.id}`,'PUT',update.body);
 const dbs=await cf('d1/database?name=invictus-register&per_page=100');let db=dbs.find(x=>x.name==='invictus-register');
 if(!db)db=await cf('d1/database','POST',{name:'invictus-register',primary_location_hint:'apac'});
 config.d1_databases[0].database_id=db.uuid;

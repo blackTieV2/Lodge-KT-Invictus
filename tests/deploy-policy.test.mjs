@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {officerPolicyUpdate} from '../scripts/access-policy.mjs';
+const policy=()=>({id:'managed-test',name:'Invictus named officers',decision:'allow',include:[{email:{email:'old@example.invalid'}}],require:[{auth_method:{auth_method:'mfa'}}],exclude:[{email:{email:'blocked@example.invalid'}}],mfa_config:{mfa_disabled:false,session_duration:'1h'},approval_required:true,approval_groups:[{approvals_needed:1,email_addresses:['approver@example.invalid']}],precedence:3,session_duration:'8h'});
+const roles={'admin@example.invalid':'admin','new@example.invalid':'viewer'};
+test('redeployment adds new officers and removes old addresses in the managed policy',()=>{const p=policy(),r=officerPolicyUpdate([p],roles);assert.equal(r.changed,true);assert.deepEqual(r.body.include,[{email:{email:'admin@example.invalid'}},{email:{email:'new@example.invalid'}}]);assert.equal(r.id,p.id);assert.ok(!Object.hasOwn(r.body,'id'));});
+test('MFA, exclusions, approvals and ordering survive officer-list changes',()=>{const p=policy(),r=officerPolicyUpdate([p],roles);for(const key of ['require','exclude','mfa_config','approval_required','approval_groups','precedence','session_duration'])assert.deepEqual(r.body[key],p[key]);});
+test('unrelated deny and MFA policies and input objects are not changed',()=>{const p=policy(),other={id:'unrelated',name:'Security deny',decision:'deny',include:[{everyone:{}}]},all=[other,p],before=structuredClone(all);const r=officerPolicyUpdate(all,roles);assert.equal(r.id,'managed-test');assert.deepEqual(all,before);});
+test('matching officer lists are idempotent regardless of order',()=>{const p=policy();p.include=Object.keys(roles).reverse().map(email=>({email:{email}}));assert.equal(officerPolicyUpdate([p],roles).changed,false);});
+test('missing or duplicated managed policy fails closed',()=>{assert.throws(()=>officerPolicyUpdate([],roles));assert.throws(()=>officerPolicyUpdate([policy(),policy()],roles));});
+test('shared, changed-decision, broad or unknown policy configuration requires review',()=>{for(const delta of [{reusable:true},{app_count:2},{decision:'bypass'},{include:[{everyone:{}}]},{future_security_setting:true}])assert.throws(()=>officerPolicyUpdate([{...policy(),...delta}],roles));});

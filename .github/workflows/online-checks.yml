@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22'
       - name: Online API, authentication and concurrency tests
-        run: node --test tests/online.test.mjs
+        run: node --test tests/online.test.mjs tests/deploy-policy.test.mjs
       - name: Build code-only online assets
         run: node scripts/build-online.mjs
       - name: Validate actual Worker bundle without deploying

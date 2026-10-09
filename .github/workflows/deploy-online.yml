@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - run: node --test tests/online.test.mjs
+      - run: node --test tests/online.test.mjs tests/deploy-policy.test.mjs
       - run: node scripts/build-online.mjs
       - name: Protected Cloudflare deployment
         run: node scripts/deploy-online.mjs
