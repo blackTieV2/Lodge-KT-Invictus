@@ -1,36 +1,22 @@
-# 01-intake
+# 01-intake — lightweight member-status app
 
-This stage defines the goal, scope, constraints, stakeholders, success criteria, and unresolved requirements.
+The active task is the small Invictus status-lookup app, not the original durable LLM operations-platform proposal.
 
-## Goal
-Produce a durable LLM memory and operations platform that can support a human-led preceptory documentation and management workflow.
+Read `REGISTER-SCOPE.md` in this directory as the consolidated intake. It defines the product goal, users, scope, practical preceptory model, frontend/backend/human responsibilities, memory categories, event records, privacy limits and acceptance/approval gate.
 
-## Scope
-- governance and memory architecture
-- persistent evidence capture
-- operational knowledge model for preceptory records
-- future web front-end and backend prototype work
+The local-file frontend from PR #3 already exists on `main`. Preserve it. This stage reconciles the intake with that live state and the user's proposed approval-first sequence; it does not authorise a new implementation.
 
 ## Constraints
-- model-neutral repository
-- no secrets in repo
-- no implementation without design approval
-- no deployment/release without approval
 
-## Stakeholders
-- repository owner
-- human operators/admins
-- future AI orchestrator agents
-- preceptory or lodge maintainers
+- One Preceptory; primarily Registrar and Treasurer, optionally Preceptor.
+- No custom/purchased domain, mandatory cloud setup or hosting expenditure.
+- Recommended v1: local browser interface plus a separately held private file; no server.
+- One editor at a time; no live multi-user synchronisation or enforced application roles.
+- Repository is public: no operational member data, private sources or encrypted real-data exports in GitHub.
+- Statutes of Great Priory control the rules; working records and user reports have their own evidence basis.
 
-## Success criteria
-- governance files installed and versioned
-- memory model documented
-- stage contracts established
-- execution hold active until requested work is approved
+## Gate
 
-## Unresolved requirements
-- exact user-facing site requirements
-- database schema requirements
-- preceptory workflow specifics
-- deployment target
+Intake approval is pending for the next increment. Documentation and read-only verification may continue. Do not start further design/build, change the private-file schema or deploy anything until the applicable explicit approval is recorded.
+
+Existing design and format references are `stages/03-design/REGISTER-DESIGN.md` and `docs/REGISTER-DATA-MODEL.md` from the repository root. They describe prior work, not automatic approval for a new increment.

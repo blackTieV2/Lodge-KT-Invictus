@@ -1,11 +1,13 @@
-# CONTEXT.md
+# Current context
 
-This repository retains its governed, model-neutral project scaffold. The current bounded task is a local-first member-status front end for the Registrar, Treasurer and optionally Preceptor, following the user's explicit reduction of the larger platform proposal.
+Read AGENTS.md, PROJECT_STATUS.md, stages/01-intake/CONTEXT.md and stages/01-intake/REGISTER-SCOPE.md in that order.
 
-Read AGENTS.md, PROJECT_STATUS.md, stages/01-intake/REGISTER-SCOPE.md and stages/03-design/REGISTER-DESIGN.md before touching the frontend. The scoped human instruction permits this frontend build, validation and local-use package only; it does not remove broader backend, deployment or private-data publication holds.
+The active task is intake alignment for a small, local-first Invictus member-status app. The users are primarily the Registrar and Treasurer, optionally the Preceptor. No custom domain, mandatory cloud setup or shared backend is part of the recommended v1.
 
-Application code is under app/. The browser loads a separately supplied private register file. There is no live shared backend, external integration or LLM memory engine. Do not describe local file saving as synchronisation or edit-history entries as independently verified official acts.
+Verified baseline: PR #3 is merged into main at be1fea1e756a307fd18fa22377044edada0438a2. The frontend already exists under app/, with a private-file contract in docs/REGISTER-DATA-MODEL.md and an existing bounded design in stages/03-design/REGISTER-DESIGN.md. Preserve this work. Do not describe it as unbuilt or treat the old generic LLM-platform scaffold as the current feature scope.
 
-Source of rule authority: the Statutes of Great Priory of England and Wales and its Provinces Overseas. Runtime source claims and user decisions remain distinguishable from statutory authority. Private membership records and source evidence must never be committed to this public repository.
+The user proposed completing intake before proceeding to design. The consolidated intake is drafted for explicit approval of the next increment. This documentation task does not authorise further design/build, hosting, a backend, a schema change or publication of private data. Earlier scoped-build statements describe the prior merged task, not continuing authority for expansion.
 
-The original stage scaffold remains for future approved work. Use docs/REGISTER-DATA-MODEL.md for the current private file contract and README.md for actual startup/testing steps.
+The repository is public. Application code and synthetic examples may be versioned here; the real register, member evidence, account files and their encrypted exports must remain outside it. Operator attribution is not authentication. A local file export is not synchronisation. Local history is not a tamper-proof official record.
+
+The Statutes of Great Priory of England and Wales and its Provinces Overseas are the controlling rule source. Source claims, human-confirmed working decisions, proposed findings and local edit events remain distinct. No LLM memory service is required or implemented for the current app.
