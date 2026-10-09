@@ -1,0 +1,60 @@
+authority:
+  default_hierarchy:
+    - explicit_current_human_instruction
+    - verified_live_target_state
+    - current_project_status
+    - canonical_governance
+    - approved_human_decision
+    - approved_design_or_procedure
+    - approved_factual_knowledge
+    - approved_handoff
+    - historical_experience
+    - agent_inference
+    - semantic_similarity
+  enforcement:
+    - "A higher-authority source does not eliminate the need to surface conflict."
+    - "Historical memory never authorizes current execution without live verification."
+
+memory:
+  required_types:
+    - FACT
+    - EXPERIENCE
+    - OBSERVATION
+    - INFERENCE
+    - DECISION / JUDGMENT
+    - PROCEDURE
+    - RESOURCE
+  required_separation:
+    - raw_evidence
+    - runtime_state_events
+    - approved_memory
+  write_gate:
+    - "source provenance required"
+    - "status and authority tracked separately"
+    - "secret-like content denied"
+    - "human review required for consequential memory"
+
+retrieval:
+  priority_order:
+    - current_project_status
+    - canonical_files
+    - exact_identifiers
+    - filename_or_path_search
+    - lexical_search
+    - metadata_filtering
+    - temporal_filtering
+    - relationship_traversal
+    - recency
+  non_authoritative: true
+  derived_index_policy: "vector index remains derived, disposable, and rebuildable; canonical truth lives in Git-tracked files."
+
+execution:
+  hold_default: true
+  approval_required_for:
+    - build
+    - qa
+    - deployment
+    - release
+    - destructive_git_actions
+    - target_changes
+    - canonical_policy_changes

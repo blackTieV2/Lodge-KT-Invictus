@@ -1,0 +1,44 @@
+stage_profiles:
+  triage:
+    capabilities:
+      - read
+      - classify
+    restrictions:
+      - no implementation
+  research:
+    capabilities:
+      - read
+      - search
+      - evidence_capture
+  design:
+    capabilities:
+      - read
+      - write_design_artifacts
+    restrictions:
+      - no build approval
+  build:
+    capabilities:
+      - scoped_modification
+      - approved_validation
+    restrictions:
+      - no unrelated changes
+      - no deployment without approval
+  qa:
+    capabilities:
+      - inspection
+      - testing
+      - evidence_capture
+    restrictions:
+      - no silent implementation drift
+  handoff:
+    capabilities:
+      - status_updates
+      - evidence_recording
+      - handoff_write
+
+single_writer:
+  rule: "One modifying agent owns one mutable target at a time."
+
+execution_holds:
+  default: true
+  overrides: []
