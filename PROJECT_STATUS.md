@@ -1,55 +1,19 @@
-# Project status
+# Project status — hosted correction
 
-```yaml
-project: Lodge-KT-Invictus
-repository: blackTieV2/Lodge-KT-Invictus
-checkpoint_date: 2026-10-09
-current_stage: 01-intake
-current_task: "Align the reduced status-app intake with the existing frontend; seek approval before the next design increment."
-review_branch: docs/intake-status-app-review
-baseline:
-  branch: main
-  head: be1fea1e756a307fd18fa22377044edada0438a2
-  merged_pr: 3
-  frontend_exists: true
-  file_schema_version: 1
-  repository_visibility: public
-existing_frontend_verification:
-  workflow: Register checks
-  run_id: 37908807448
-  head: be1fea1e756a307fd18fa22377044edada0438a2
-  observed_conclusion: success
-  successful_steps:
-    - core regression tests
-    - portable-page build
-    - browser workflow over localhost
-    - browser workflow as a local file
-  note: "Observed existing CI evidence; not a new local test run or data certification."
-intake:
-  document: stages/01-intake/REGISTER-SCOPE.md
-  revision: "1.1"
-  status: awaiting_human_approval
-  approved_by: null
-  approval_reference: null
-execution_hold: true
-execution_hold_scope: "Further design/build, schema changes, backend, hosting, deployment, release and private-data publication."
-allowed_now:
-  - scope and intake documentation
-  - read-only repository and CI verification
-  - documentation validation and review
-  - preservation of the already merged frontend
-new_design_approved: false
-new_build_approved: false
-deployment_approved: false
-release_approved: false
-private_data_publication_approved: false
-known_limits:
-  - "One private-file editor at a time; no shared synchronisation."
-  - "No login or enforced role permissions; operator names are attribution."
-  - "No automatic KOL, official account, membership or correspondence actions."
-  - "No real register is bundled; initial reviewed conversion remains separate."
-  - "Local history is not tamper-proof; browser storage is not a backup."
-next_safe_action: "Obtain explicit approval of REGISTER-SCOPE.md before assessing the next bounded design increment."
-```
+Date: 9 October 2026. Current stage: QA / hosting authorisation.
 
-The prior local-frontend build is preserved. Returning the active work item to intake does not delete the app, undo PR #3 or claim that its earlier approval was absent. It prevents old scope-exception wording from authorising additional work automatically. Generic platform, backend and deployment holds remain in place.
+The owner explicitly rejected local use and instructed the hosted correction. This supersedes local-only intake/design/handover holds and PR #5's delivery assumption. Small hosted app implementation is authorised; no new product approval is required.
+
+Starting main: `23b03a67bcbdba19a9b872c1fcd524b6764d01b9`. Build branch: `feature/hosted-register`. Repository verified public at recon; visibility left for the owner to change as instructed.
+
+Implemented: hosted browser interface, Cloudflare Worker API, verified Access login and server role checks, shared D1 storage, conditional writes, audit and 60 recovery snapshots, code-only asset build, hosted deployment workflow and synthetic tests. Existing local application/core was preserved; no real records were added to GitHub.
+
+Preparation checks: 23 API/auth/concurrency/transaction tests passed. Online asset build passed. Browser save/reload, second-user reads, role controls, conflict draft preservation and mobile layout passed in the explicitly labelled in-memory DOM/HTTP-bridge mode. Full browser navigation is blocked in the preparation runtime. GitHub CI provides the real browser and Wrangler-bundle checks; read its result live before claiming success.
+
+Not yet completed: authenticated Cloudflare account connection, production deployment, actual Access login/denied-account smoke check, private dataset initialisation and actual D1 round-trip. No live URL has been established. Do not describe an implemented build as a published service.
+
+Deployment requires account authorisation plus the privately configured officer allowlist. No authenticated Cloudflare browser context or deployment credential was available at recon. GitHub code access does not grant Cloudflare account access. No local user commands are required; all deployment scripts run in hosted CI.
+
+Remaining prohibitions: no domain purchase, no publication of private data, no official KOL/account actions, no changes to unrelated services. Privacy verification is required before adding private source files. Authentication and anonymous-access checks must be verified before loading real data. Same-account recovery snapshots do not replace an independent disaster backup.
+
+Next action: finish CI/review, then authorise the existing Cloudflare account and deploy through the hosted workflow. After the owner makes this repo private, verify that live state and load the already prepared reviewed register privately. Do not send another local ZIP or ask for another intake approval.

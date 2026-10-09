@@ -1,0 +1,32 @@
+name: Online register checks
+on:
+  pull_request:
+  push:
+    branches: [main, feature/hosted-register]
+permissions:
+  contents: read
+jobs:
+  online:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Online API, authentication and concurrency tests
+        run: node --test tests/online.test.mjs tests/deploy-policy.test.mjs
+      - name: Build code-only online assets
+        run: node scripts/build-online.mjs
+      - name: Validate actual Worker bundle without deploying
+        run: npx --yes wrangler@4.149.0 deploy --dry-run --outdir /tmp/invictus-worker-check
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+      - name: Install browser test tooling
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Online browser workflow
+        run: python tests/online_browser.py

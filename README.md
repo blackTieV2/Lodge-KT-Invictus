@@ -1,45 +1,37 @@
-# Invictus · The Register
+# Invictus · Online Register
 
-A small, local-first membership status front end for the Registrar, Treasurer and Preceptor of Invictus No. 724. No custom domain, cloud account, installation or backend is required for the portable page.
+**Open a website, sign in, and use the shared register. No local server, ZIP, command line, or daily file import/export is part of the product.**
 
-## Use it
+The owner's 9 October correction supersedes the previous local-file delivery and PR #5. The small scope is unchanged: quick Brother Knight lookup, separate membership/KOL/account positions, notes, Registrar/Treasurer follow-ups and proposed GP costs. What changes is hosting and persistence.
 
-Open `app/index.html` in a current desktop browser. Or build the single portable HTML file with `node scripts/build.mjs`, then open `dist/Invictus.html`.
+## Hosted application
 
-Choose **Open file** and select your private Invictus Register JSON or encrypted `.invictus` file. The application starts empty; **Try a fictional demonstration** is safe sample data. Real records are deliberately not in this public repository.
+Cloudflare Workers serves `web/` on a provider-issued `workers.dev` URL; no purchased domain is required. Cloudflare Access provides sign-in. A private D1 database stores the working register. Saves include a version check, server identity and timestamp, an audit entry and a recovery snapshot. Other open screens refresh every 30 seconds and when brought to the foreground; an open form is not silently replaced.
 
-Search by name, alias, MMH or invoice. Select a name for status, account position, sources, notes and follow-ups. **Save private copy** downloads a new encrypted snapshot. Saving a record changes memory; exporting keeps those changes after the session.
+Role permissions are checked on the server: administrator; Registrar for membership/KOL fields; Treasurer for financial fields; viewer for read-only use. No shared password or self-declared operator identity. The origin verifies the Access JWT as well as relying on the login gate. Missing setup fails closed.
 
-## What is included
+The app is implemented but is **not a deployed website until Cloudflare account authorisation, deployment and authenticated smoke checks have completed**. See PROJECT_STATUS.md for the current verified checkpoint, not an assumed URL.
 
-- Searchable register; current, missing-KOL, payment, departure and red-flag filters.
-- Separate membership, evidence-basis, KOL and financial status fields.
-- Registrar and Treasurer work queues, completion references and new follow-ups.
-- Working-record editing, source snapshot and local change history.
-- Proposed GP-cost review, expressly pending approval and separate from member debt.
-- Encrypted export/import, optional encrypted browser copy, readable JSON and CSV summary exports.
-- Responsive layout, keyboard focus, accessible dialogs and print styling.
+## Deployment is hosted, not local
 
-## Important boundaries
+The `Deploy online register` GitHub Actions workflow runs on `main`. It needs these secrets configured through authenticated account administration: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and `OFFICER_ROLES` (a JSON map of approved lowercase email addresses to roles). Never paste secret tokens into chat or commit them.
 
-This is a **local file tool**, not a shared online database. Use one editor at a time and hand over the latest file. No automatic merging or synchronisation is implemented. Everyone who can unlock a copy can edit it; operator names are attribution, not authentication.
+The setup script reuses or provisions the dedicated D1 database and Access application, applies the schema, builds/deploys the protected Worker and checks anonymous access. It does not alter other websites or purchase a domain. Existing Access policies are preserved rather than overwritten. Zero Trust and the provider subdomain must exist in the authorised account.
 
-KOL, bank records and the Treasurer's books are not changed. Marking a follow-up done records the operator's claim plus a reference; it is not independent verification. Proposed cessation is not implemented automatically. Statutes of Great Priory control the rules; neither imported spreadsheets nor this UI override them.
+The administrator/maintainer handles the initial data load once. Afterwards the officers do not load files. An optional `private/register.json` seed is accepted by deployment only after a live GitHub check confirms this exact repository is private; existing online data is never overwritten. Initialisation through the authenticated admin page is also supported.
 
-JSON/CSV are unencrypted. Never commit personal data, evidence documents, bank records, tokens or private exports. An encrypted file also belongs outside this public repo. Keep a separate backup and keep the passphrase safe; there is no recovery service. A browser copy is not a backup.
+## Private source records
 
-## Development and checks
+The owner will make the repository private. Do not add real data before that visibility change is verified. A private code repository does NOT itself make a hosted website private. Website sign-in is separate and remains enabled regardless of repository visibility.
 
-Runtime: plain HTML/CSS/JavaScript, no dependencies or external calls. Node 22+ is used only for tests and optional bundling.
+After the repository is verified private, authorised source documents may be archived under `private/` and the reviewed seed prepared there. The build publishes exactly five allowlisted code files, never the repository root or `private/`. Minutes, summons, forms and accounts must not enter public Git history, public CI output or public release artifacts.
 
-```sh
-node --test tests/core.test.mjs
-node scripts/build.mjs
-python -m pip install playwright==1.57.0
-python -m playwright install chromium
-python tests/browser_smoke.py
-```
+## Boundaries
 
-For the file-URL browser test set `INVICTUS_FILE=1`. Set `CHROMIUM_PATH` only when using an existing Chromium executable. `INVICTUS_IN_MEMORY=1` tests UI rendering in a restricted runner; it intentionally does not claim to test browser encryption/storage.
+This remains a working status register, not an accounting ledger or statutory decision engine. Saving a note does not change KOL, post a payment, send a message or confer membership. The Statutes of Great Priory control the rules. Source qualifications and original ledger values are retained. Existing `app/` local-file code is legacy only, retained for regression tests; it is not the user-facing delivery.
 
-The existing project governance scaffold remains. Read `stages/01-intake/REGISTER-SCOPE.md`, `stages/03-design/REGISTER-DESIGN.md` and `docs/REGISTER-DATA-MODEL.md` for the bounded implementation. Shared-backend, hosting and LLM automation work remain out of scope.
+The last 60 saved versions are retained in D1 for recovery; the server audit is retained separately. These same-account recovery snapshots are not an independent disaster backup. Configure provider recovery/independent exports before relying on this as the only record. Historical private source originals remain necessary.
+
+## Maintainer checks
+
+`node --test tests/online.test.mjs` checks auth, permission boundaries, concurrency and SQLite transaction/trigger behaviour. `node scripts/build-online.mjs` makes the allowlisted assets. `python tests/online_browser.py` exercises the browser against the synthetic HTTP adapter. CI also validates the actual Worker bundle. None of those commands is required on an officer's computer.
