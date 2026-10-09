@@ -1,0 +1,50 @@
+# Hosting-side stack. No software is run on an officer's PC.
+# Default publishes NO host port. Existing ingress must be verified before activation.
+name: invictus
+services:
+  register:
+    image: ${INVICTUS_IMAGE:?Set the tested image digest from the container build}
+    restart: unless-stopped
+    init: true
+    user: '1000:1000'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 100
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      PUBLIC_ORIGIN: https://invictus.layer-8-labs.com
+      ACCESS_CONFIG_FILE: /run/secrets/invictus_access
+    volumes:
+      - register_data:/data
+      - register_backups:/backups
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    secrets: [invictus_access]
+    networks: [ingress]
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: ${INVICTUS_INGRESS_NETWORK:?Set the verified existing ingress network}
+      traefik.http.routers.invictus.rule: Host(`invictus.layer-8-labs.com`)
+      traefik.http.routers.invictus.entrypoints: ${INVICTUS_HTTPS_ENTRYPOINT:?Set the verified HTTPS entrypoint}
+      traefik.http.routers.invictus.tls: 'true'
+      traefik.http.routers.invictus.tls.certresolver: ${INVICTUS_TLS_RESOLVER:?Set the verified certificate resolver}
+      traefik.http.routers.invictus.service: invictus
+      traefik.http.services.invictus.loadbalancer.server.port: '8080'
+      traefik.http.services.invictus.loadbalancer.passhostheader: 'true'
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: '3'
+secrets:
+  invictus_access:
+    file: ${INVICTUS_ACCESS_CONFIG:?Set the private server-side config file path}
+volumes:
+  register_data:
+  register_backups:
+networks:
+  ingress:
+    external: true
+    name: ${INVICTUS_INGRESS_NETWORK:?Set the verified existing ingress network}

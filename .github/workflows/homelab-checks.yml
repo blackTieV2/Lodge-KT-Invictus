@@ -1,0 +1,38 @@
+name: Home-lab register checks
+on:
+  pull_request:
+  push:
+    branches: [main, feature/homelab-hosting]
+permissions:
+  contents: read
+jobs:
+  homelab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Baseline and home-lab HTTP/storage regression tests
+        run: node --test tests/core.test.mjs tests/online.test.mjs tests/deploy-policy.test.mjs tests/homelab.test.mjs
+      - name: Build allowlisted online assets
+        run: node scripts/build-online.mjs
+      - name: Validate hosting-side Compose without applying it
+        env:
+          INVICTUS_IMAGE: invictus-homelab:test
+          INVICTUS_INGRESS_NETWORK: ci-example-network
+          INVICTUS_HTTPS_ENTRYPOINT: ci-example-https
+          INVICTUS_TLS_RESOLVER: ci-example-resolver
+          INVICTUS_ACCESS_CONFIG: /tmp/ci-access-placeholder.json
+        run: docker compose -f deploy/homelab/compose.yaml config --quiet
+      - name: Build actual container and test private-file exclusion
+        run: |
+          mkdir -p private
+          printf 'SYNTHETIC EXCLUSION TRAP\n' > private/DO-NOT-SHIP.txt
+          printf 'SYNTHETIC EXCLUSION TRAP\n' > DO-NOT-SHIP.txt
+          docker build --pull -t invictus-homelab:test .
+      - name: Disposable container restart, persistence and protection tests
+        run: node tests/container-smoke.mjs

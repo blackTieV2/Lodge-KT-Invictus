@@ -1,0 +1,19 @@
+# Deny by default, including all private sources, Git history, credentials and tests.
+**
+!Dockerfile
+!app/
+!app/core.js
+!app/styles.css
+!web/
+!web/index.html
+!web/ui.js
+!web/online.css
+!scripts/
+!scripts/build-online.mjs
+!server/
+!server/auth.mjs
+!server/worker.mjs
+!homelab/
+!homelab/*.mjs
+!migrations/
+!migrations/*.sql

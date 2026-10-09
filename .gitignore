@@ -41,3 +41,16 @@ online-dist/
 .online-secrets.json
 .dev.vars
 .dev.vars.*
+
+# Home-lab runtime state and private configuration never belong in Git.
+*.sqlite*
+*.db
+*.db-wal
+*.db-shm
+*.partial
+*.secret.json
+homelab/access.json
+.config-private/
+data/
+backups/
+DO-NOT-SHIP.txt
