@@ -1,19 +1,17 @@
-# Project status — hosted correction
+# Project status — home-lab hosting
 
-Date: 9 October 2026. Current stage: QA / hosting authorisation.
+Checkpoint: 9 October 2026. Task: adapt the existing hosted register to the owner's home-lab hosting choice.
 
-The owner explicitly rejected local use and instructed the hosted correction. This supersedes local-only intake/design/handover holds and PR #5's delivery assumption. Small hosted app implementation is authorised; no new product approval is required.
+Authority: "Ok. Done. Continue with everything you can do" after accepting `invictus.layer-8-labs.com`. No repeat intake/design approval. No local app/files/commands are required on officers' computers.
 
-Starting main: `23b03a67bcbdba19a9b872c1fcd524b6764d01b9`. Build branch: `feature/hosted-register`. Repository verified public at recon; visibility left for the owner to change as instructed.
+Starting main: `ed7edcc33a805645e89edc26f5d349103d278570`; isolated branch: `feature/homelab-hosting`. Source recon confirmed the previous build was Cloudflare Worker/D1-only. Repository still public; no private data was uploaded and visibility was not changed on the owner's behalf. A read-only external browser probe returned ERR_EMPTY_RESPONSE, not an app or sign-in page. Internal DNS/actual ingress state remains unverified.
 
-Implemented: hosted browser interface, Cloudflare Worker API, verified Access login and server role checks, shared D1 storage, conditional writes, audit and 60 recovery snapshots, code-only asset build, hosted deployment workflow and synthetic tests. Existing local application/core was preserved; no real records were added to GitHub.
+Added: server-side Docker runtime, persistent SQLite adapter reusing the existing schema/API, canonical HTTPS/Host protection, private mounted authentication configuration, standalone verified backups, Traefik-compatible Compose, code-only image build/publish workflow and real HTTP/persistence/recovery tests. Existing frontend/authentication/Worker business logic and underlying membership data model remain unchanged.
 
-Preparation checks: 23 API/auth/concurrency/transaction tests passed. Online asset build passed. Browser save/reload, second-user reads, role controls, conflict draft preservation and mobile layout passed in the explicitly labelled in-memory DOM/HTTP-bridge mode. Full browser navigation is blocked in the preparation runtime. GitHub CI provides the real browser and Wrangler-bundle checks; read its result live before claiming success.
+Local preparation: the original core/auth/Worker/schema files matched their Git blob hashes. Fourteen new home-lab tests passed over real loopback HTTP/file-backed SQLite, covering restart persistence, role checks, forged identity, conflict rejection, source isolation, transaction rollback and backup restoration. A backup sidecar/retention issue found in the first test run was fixed and retested. Docker is not installed in the preparation runtime; container build/replacement tests must be read from the actual GitHub CI result. Prior CI success is not a result for this new head.
 
-Not yet completed: authenticated Cloudflare account connection, production deployment, actual Access login/denied-account smoke check, private dataset initialisation and actual D1 round-trip. No live URL has been established. Do not describe an implemented build as a published service.
+Not completed: home-lab server/Portainer access, confirmation of the selected backend and ingress/identity settings, deployment of a running container, permitted/denied real officer login, initial private data load and live save/reopen checks. No home-lab DNS, firewall, reverse proxy or existing service was changed. The included image-publication workflow does not deploy to the home lab.
 
-Deployment requires account authorisation plus the privately configured officer allowlist. No authenticated Cloudflare browser context or deployment credential was available at recon. GitHub code access does not grant Cloudflare account access. No local user commands are required; all deployment scripts run in hosted CI.
+The existing Access JWT verifier remains mandatory. Plain DNS/Traefik without that authenticated ingress is insufficient. Configure the selected login path before launch, rather than disabling authentication. Backups are currently same-host by default; off-host disaster recovery remains a deployment requirement. Source originals and original register remain retained separately.
 
-Remaining prohibitions: no domain purchase, no publication of private data, no official KOL/account actions, no changes to unrelated services. Privacy verification is required before adding private source files. Authentication and anonymous-access checks must be verified before loading real data. Same-account recovery snapshots do not replace an independent disaster backup.
-
-Next action: finish CI/review, then authorise the existing Cloudflare account and deploy through the hosted workflow. After the owner makes this repo private, verify that live state and load the already prepared reviewed register privately. Do not send another local ZIP or ask for another intake approval.
+Next safe action: finish and verify new CI, verify the automatic main-branch code-only image publication, then obtain the actual backend/management route and perform the authenticated deployment. Check repository privacy again before any private archive/seed handling. Read deploy/homelab/README.md and stages/03-design/HOMELAB-HOSTING.md.

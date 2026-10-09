@@ -1,0 +1,9 @@
+{
+  "ACCESS_ISSUER": "https://REPLACE-WITH-EXISTING-TEAM.cloudflareaccess.com",
+  "ACCESS_AUD": "REPLACE-WITH-INVICTUS-APP-AUDIENCE",
+  "OFFICER_ROLES": {
+    "registrar@example.invalid": "admin",
+    "treasurer@example.invalid": "treasurer",
+    "preceptor@example.invalid": "viewer"
+  }
+}

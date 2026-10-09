@@ -1,4 +1,4 @@
-name: Deploy online register
+name: Legacy Cloudflare deployment (explicit opt-in)
 on:
   workflow_dispatch:
 permissions:
@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.INVICTUS_DEPLOYMENT_TARGET == 'cloudflare'
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 15
