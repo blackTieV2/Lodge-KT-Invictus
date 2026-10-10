@@ -67,12 +67,17 @@ def check_receipt(directory: Path, run_id: str, attempt: str, commit: str):
     return receipt
 
 def atomic_json(path: Path, content: dict):
-    temp = path.with_name(path.name+'.tmp')
-    with temp.open('x', encoding='utf-8') as stream:
-        json.dump(content, stream)
-        stream.flush()
-        os.fsync(stream.fileno())
-    os.replace(temp, path)
+    # Unique same-directory temp: an interrupted old run cannot poison every retry.
+    fd, name = tempfile.mkstemp(prefix='.'+path.name+'-', suffix='.tmp', dir=path.parent)
+    temp = Path(name)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+            json.dump(content, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp, path)
+    finally:
+        temp.unlink(missing_ok=True)
 
 def pull(destination: Path):
     destination = destination.expanduser().resolve()

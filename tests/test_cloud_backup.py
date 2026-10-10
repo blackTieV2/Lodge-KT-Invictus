@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timezone
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -89,5 +90,19 @@ class BackupTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'status.json';pull.atomic_json(path,{'a':1});pull.atomic_json(path,{'a':2})
             self.assertEqual(json.loads(path.read_text()),{'a':2});self.assertFalse(path.with_name('status.json.tmp').exists())
+    def test_orphaned_old_temp_does_not_block_next_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);old=d/'status.json.tmp';old.write_text('interrupted previous run')
+            pull.atomic_json(d/'status.json',{'current':True})
+            self.assertEqual(json.loads((d/'status.json').read_text()),{'current':True})
+            self.assertTrue(old.exists())
+            self.assertEqual(len(list(d.iterdir())),2)
+    def test_replace_failure_preserves_previous_receipt_and_cleans_own_temp(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);path=d/'status.json';path.write_text('{"old": true}')
+            with patch.object(pull.os,'replace',side_effect=OSError('synthetic disk failure')):
+                with self.assertRaises(OSError):pull.atomic_json(path,{'new':True})
+            self.assertEqual(json.loads(path.read_text()),{'old':True})
+            self.assertEqual([p.name for p in d.iterdir()],['status.json'])
 
 if __name__=='__main__':unittest.main()
