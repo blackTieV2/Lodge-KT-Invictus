@@ -34,16 +34,22 @@ const wrapper = `\nexport default { async fetch(request, env) {
 }};\n`;
 async function withRuntime(run, {source=authSource, respond=goodReply}={}) {
   const requests=[];
-  const mf = new Miniflare({workers:[{
-    name:'invictus-auth-test', modules:true, script:source+wrapper, compatibilityDate:config.compatibility_date,
-    compatibilityFlags:config.compatibility_flags || [],
-    bindings:{ACCESS_ISSUER:issuer,ACCESS_AUD:audience,OFFICER_ROLES:JSON.stringify(roles)},
-    outboundService:async request => {
+  // Match packages/miniflare/src/config/schema.ts at wrangler@4.149.0:
+  // per-worker config/manifest/typed env, and a dev fetcher for transport only.
+  const mf = new Miniflare({cf:false,logRequests:false,workers:[{
+    config:{
+      name:'invictus-auth-test', compatibilityDate:config.compatibility_date,
+      compatibilityFlags:config.compatibility_flags || [],
+      manifest:{mainModule:'auth-test.mjs',modules:{'auth-test.mjs':{type:'esm',contents:source+wrapper}}},
+      env:Object.fromEntries(Object.entries({ACCESS_ISSUER:issuer,ACCESS_AUD:audience,OFFICER_ROLES:JSON.stringify(roles)}).map(([name,value])=>[name,{type:'json',value}])),
+      exports:{default:{type:'worker'}}
+    },
+    dev:{unsafeRegisterWorker:false,outboundService:{type:'fetcher',handler:async request => {
       // This callback is reached AFTER workerd has processed native fetch options.
       requests.push({url:request.url,method:request.method,headers:new Headers(request.headers)});
       assert.equal(request.url, issuer+'/cdn-cgi/access/certs', 'No redirect or arbitrary outbound origin is permitted');
       return respond(request);
-    }
+    }}}
   }]});
   const send = (jwt=valid) => mf.dispatchFetch('https://invictus.example.invalid/api/session', {
     headers:jwt ? {'Cf-Access-Jwt-Assertion':jwt,'Cookie':'synthetic-private-cookie','Authorization':'synthetic-private-header'} : {}
