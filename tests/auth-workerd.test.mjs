@@ -34,8 +34,8 @@ const wrapper = `\nexport default { async fetch(request, env) {
 }};\n`;
 async function withRuntime(run, {source=authSource, respond=goodReply}={}) {
   const requests=[];
-  const mf = new Miniflare({
-    modules:true, script:source+wrapper, compatibilityDate:config.compatibility_date,
+  const mf = new Miniflare({workers:[{
+    name:'invictus-auth-test', modules:true, script:source+wrapper, compatibilityDate:config.compatibility_date,
     compatibilityFlags:config.compatibility_flags || [],
     bindings:{ACCESS_ISSUER:issuer,ACCESS_AUD:audience,OFFICER_ROLES:JSON.stringify(roles)},
     outboundService:async request => {
@@ -44,7 +44,7 @@ async function withRuntime(run, {source=authSource, respond=goodReply}={}) {
       assert.equal(request.url, issuer+'/cdn-cgi/access/certs', 'No redirect or arbitrary outbound origin is permitted');
       return respond(request);
     }
-  });
+  }]});
   const send = (jwt=valid) => mf.dispatchFetch('https://invictus.example.invalid/api/session', {
     headers:jwt ? {'Cf-Access-Jwt-Assertion':jwt,'Cookie':'synthetic-private-cookie','Authorization':'synthetic-private-header'} : {}
   });
