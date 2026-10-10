@@ -12,7 +12,7 @@ try:
         browser=p.chromium.launch(**opts)
         admin=browser.new_context(extra_http_headers={'X-Test-Role':'admin'},viewport={'width':1440,'height':1000})
         inmemory=os.environ.get('INVICTUS_IN_MEMORY')=='1'
-        def mount(page,role='admin'):
+        def mount_runtime(page,role='admin'):
             if not inmemory:
                 page.goto('http://127.0.0.1:8791/')
                 return
@@ -32,6 +32,11 @@ try:
             page.add_style_tag(content=(root/'app/styles.css').read_text()+(root/'web/online.css').read_text())
             page.evaluate("() => { window.fetch=async(url,options={})=>{const r=await window.testHttpBridge({url,method:options.method||'GET',headers:options.headers||{},body:options.body||''});return new Response(r.body,{status:r.status,headers:r.headers});}; }")
             page.add_script_tag(content=(root/'app/core.js').read_text());page.add_script_tag(content=(root/'web/ui.js').read_text())
+        def mount(page,role='admin'):
+            mount_runtime(page,role)
+            page.locator('h1').filter(has_text='Action centre').wait_for()
+            page.locator('[data-view=register]').click()
+            page.get_by_role('button',name='Arthur Example',exact=True).wait_for()
         page=admin.new_page();errors=[];page.on('pageerror',lambda error: errors.append(str(error)))
         mount(page);page.get_by_role('button',name='Arthur Example',exact=True).wait_for()
         assert page.get_by_role('button',name='Open file',exact=True).count()==0

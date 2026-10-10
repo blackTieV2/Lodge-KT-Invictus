@@ -1,5 +1,6 @@
 import '../app/core.js';
 import { authenticate, HttpError } from './auth.mjs';
+import { updateAction } from './action-update.mjs';
 const C = globalThis.Invictus;
 const MAX = 1500000; // Below D1's row-size limit; source documents are never embedded.
 const common = ['notes'];
@@ -95,14 +96,14 @@ async function route(request,env) {
     insist(text(b.title)&&C.OWNERS.includes(b.owner),422,'Action title and owner required.');
     insist(user.role!=='treasurer'||b.owner==='Treasurer',403,'Treasurer may create Treasurer follow-ups only.');
     memberId=b.memberId;
-    d.actions.push({id:crypto.randomUUID(),memberId,title:b.title.trim(),owner:b.owner,state:'open',priority:b.priority||'normal',due:b.due||'',reference:''});
-    summary='Follow-up created for '+b.owner; reference='Working follow-up; no external action performed.';
+    const actionId=crypto.randomUUID();
+    d.actions.push({id:actionId,memberId,title:b.title.trim(),owner:b.owner,state:'open',priority:b.priority||'normal',due:b.due||'',reference:''});
+    summary='Follow-up '+actionId+' created for '+b.owner; reference='Working follow-up; no external action performed.';
   } else if(request.method==='PATCH' && /^\/api\/actions\/[^/]+$/.test(path)) {
     const a=d.actions.find(x=>x.id===decodeURIComponent(path.split('/').pop()));insist(a,404,'Action not found.');
-    insist(user.role==='admin'||(user.role==='registrar'&&a.owner!=='Treasurer')||(user.role==='treasurer'&&a.owner==='Treasurer'),403,'This account cannot update this action.');
-    insist(Object.hasOwn(C.TASK,b.state)&&typeof b.reference==='string'&&b.reference.length<=3000,422,'Invalid action state or reference.');
-    insist(b.state!=='done'||text(b.reference),422,'Completion reference required.');
-    memberId=a.memberId;summary='Follow-up '+a.state+' → '+b.state;reference=b.reference.trim()||'Progress update';a.state=b.state;a.reference=b.reference.trim();
+    const change=updateAction(a,b,user.role);
+    memberId=a.memberId;summary=change.summary;reference=change.reference;
+    Object.assign(a,change.action);
   } else throw new HttpError(404,'Unknown operation.');
   const version=(row?.version||0)+1, at=new Date().toISOString(); d.revision=version;
   // This is a convenience view; the separate server audit never accepts client edits.
