@@ -6,7 +6,7 @@
   let state = null, user = null, view = 'actions', query = '', memberFilter = 'all';
   let actionFilter = 'outstanding', ownerFilter = 'all', dueFilter = 'all', sort = 'priority';
   let draft = null, dirty = false, busy = false, refreshing = false, offline = false, saveFailed = false;
-  let generation = 0, toastTimer, historyCursor = null, historyLoading = false;
+  let generation = 0, toastTimer, historyCursor = null, historyLoading = false, historyRequest = 0;
   const people = () => state?.register?.members || [], tasks = () => state?.register?.actions || [];
   const person = id => people().find(m => m.id === id), task = id => tasks().find(a => a.id === id);
   const canManage = a => user?.role === 'admin' || (user?.role === 'registrar' && a.owner !== 'Treasurer') || (user?.role === 'treasurer' && a.owner === 'Treasurer');
@@ -121,16 +121,18 @@
   }
   async function renderHistory(more=false) {
     const target=view;
+    if(more && historyLoading)return;
+    const requestId=++historyRequest;
     if(!more){historyCursor=null;workspace.innerHTML=heading(target==='backups'?'Recovery snapshots':'Online change history',target==='backups'?'Latest saved versions; private recovery exports are not required for normal use.':'Who changed what, when, and with which reference.')+'<section class="panel"><div class="history-list" id="history-results"></div><div id="history-more"></div></section>';}
-    if(historyLoading)return;historyLoading=true;
+    historyLoading=true;
     try {
       const response=await api(target==='backups'?'/api/backups':'/api/audit'+(historyCursor?'?before='+historyCursor:''));
-      if(view!==target||!user)return;
+      if(view!==target||!user||requestId!==historyRequest)return;
       const rows=target==='backups'?response.backups:response.events;
       $('#history-results').insertAdjacentHTML('beforeend',rows.map(h=>`<article class="history-entry"><strong>Revision ${h.version}</strong> · ${e(h.saved_at)}${target==='backups'?button('Export recovery snapshot','backup',String(h.version)):`<p>${e(h.actor)} · ${e(h.summary)}</p><p>${e(h.reference)}</p>`}</article>`).join('')||(!more?'<p class="empty">No entries yet.</p>':''));
       historyCursor=rows.at(-1)?.version;
       $('#history-more').innerHTML=target==='history'&&rows.length===100?button('Load earlier changes','more-history'):'';
-    }catch(error){if(user)toast(error.message);}finally{historyLoading=false;}
+    }catch(error){if(user&&requestId===historyRequest)toast(error.message);}finally{if(requestId===historyRequest)historyLoading=false;}
   }
   function render() {
     if(!user)return;status();$('#identity').textContent=`${user.email} · ${user.role}`;$('#backup-nav').hidden=user.role!=='admin';
@@ -149,7 +151,7 @@
     draft={kind,version:state.version,...extra};dirty=false;content.innerHTML=html;
     content.querySelector('.close-dialog')?.setAttribute('aria-label','Close member record');
     if(!dialog.open)dialog.showModal();
-    content.querySelector('[autofocus], #member-title')?.focus();dialog.scrollTop=0;status();
+    (content.querySelector('[autofocus]') || content.querySelector('#member-title'))?.focus();dialog.scrollTop=0;status();
   }
   function memberView(id) {
     const m=person(id);if(!m)return;const pending=tasks().filter(a=>a.memberId===id&&a.state!=='done'),done=tasks().filter(a=>a.memberId===id&&a.state==='done');
@@ -172,7 +174,7 @@
   }
   function taskEditor(id='',memberId='') {
     const a=id?task(id):null;if(id&&(!a||!canManage(a)))return;if(!id&&!canCreate())return;
-    const owner=a?.owner||(view==='treasurer'||user.role==='treasurer'?'Treasurer':'Registrar');
+    const owner=a?.owner||(user.role==='treasurer'?'Treasurer':effectiveOwner()!=='all'?effectiveOwner():'Registrar');
     const memberChoices=Object.fromEntries([...people()].sort((a,b)=>a.name.localeCompare(b.name)).map(m=>[m.id,m.name]));
     openModal(a?'taskEdit':'taskCreate',modalHeader(a?'Edit follow-up':'New follow-up',a?person(a.memberId).name:'Assign a real next action to a Brother Knight.')+`<form id="task-form" class="online-form">${a?'':field('memberId','Brother Knight',memberId||people()[0]?.id,'text',memberChoices,'required')}${field('title','What needs to be done?',a?.title||'','textarea',null,'required maxlength="3000" autofocus')}<div class="record-grid">${field('owner','Owner',owner,'text',Object.fromEntries((user.role==='treasurer'?['Treasurer']:C.OWNERS).map(o=>[o,o])))}${field('priority','Priority',a?.priority||'normal','text',{normal:'Normal',high:'High'})}${field('due','Due date (optional)',a?.due||'','date')}</div>${a?field('reference',a.state==='done'?'Completion record':'Progress note / reference',a.reference,'textarea',null,'maxlength="3000"'):''}${a?field('reason','Reason for editing this follow-up','','textarea',null,'required maxlength="3000"'):''}${formFooter(a?'Save task':'Create follow-up')}</form>`,{taskId:id,memberId:a?.memberId||memberId,original:a?structuredClone(a):null});
   }
@@ -192,7 +194,9 @@
     try {
       const result=await api(path,{method,headers:{'Content-Type':'application/json','X-Invictus-Request':'1',...(after.initial?{'If-None-Match':'*'}:{'If-Match':`"${version}"`})},body:JSON.stringify(payload)});
       if(epoch!==generation||!user)return;
-      state=result;offline=false;dirty=false;draft=null;if(dialog.open&&!after.memberId)dialog.close();$('#connection').textContent='';busy=false;render();
+      state=result;offline=false;dirty=false;draft=null;
+      if(after.createdOwner){view='actions';ownerFilter=after.createdOwner;actionFilter='outstanding';dueFilter='all';query='';}
+      if(dialog.open&&!after.memberId)dialog.close();$('#connection').textContent='';busy=false;render();
       if(after.memberId)memberView(after.memberId);toast(after.toast||'Saved online.');
     } catch(error) {
       saveFailed=true;
@@ -271,7 +275,7 @@
         const changes={reason:value.reason};for(const k of ['title','owner','priority','due','reference'])if(value[k]!==ctx.original[k])changes[k]=value[k];
         if(Object.keys(changes).length===1)throw Error('No task changes to save.');
         await mutate('/api/actions/'+encodeURIComponent(ctx.taskId),'PATCH',changes,ctx.version,{toast:'Follow-up updated online.'});
-      }else if(ctx.kind==='taskCreate')await mutate('/api/actions','POST',value,ctx.version,{toast:'Follow-up created. It is now in the action list.'});
+      }else if(ctx.kind==='taskCreate')await mutate('/api/actions','POST',value,ctx.version,{toast:'Follow-up created. It is now in the action list.',createdOwner:value.owner});
       else if(ctx.kind==='transition'){
         const payload={state:ctx.next,reference:value.reference};
         if(ctx.next==='open')payload.reason=value.reference;

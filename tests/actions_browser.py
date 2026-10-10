@@ -56,6 +56,7 @@ try:
         expect(card(page).locator('.work-meta')).to_contain_text('In progress')
         # Waiting note and due date are persisted together.
         card(page).get_by_role('button',name='Waiting',exact=True).click()
+        expect(page.locator('[name=reference]')).to_be_focused()
         page.locator('[name=reference]').fill('Awaiting synthetic MMH reference')
         page.locator('[name=due]').fill('2020-01-01')
         page.get_by_role('button',name='Save waiting status').click();wait_saved(page)
@@ -94,11 +95,13 @@ try:
         expect(card(page)).to_contain_text('High priority');expect(card(page)).to_contain_text('Reconcile synthetic registration charge')
         page.locator('[data-view=registrar]').click();expect(card(page)).to_have_count(0)
         page.locator('[data-view=treasurer]').click();expect(card(page)).to_be_visible()
-        # Create from top-level button, linked to correct person.
+        # Creating from Completed must surface the new outstanding task.
+        page.locator('[data-task-filter=done]').click()
         page.get_by_role('button',name='+ New follow-up',exact=True).click()
         page.locator('[name=memberId]').select_option('DEMO0');page.locator('[name=title]').fill('Send synthetic invoice confirmation')
         page.locator('[name=owner]').select_option('Treasurer');page.get_by_role('button',name='Create follow-up',exact=True).click();wait_saved(page)
         created=next(a for a in fetch_data(page)['register']['actions'] if a['title']=='Send synthetic invoice confirmation')
+        expect(page.locator('[data-task-filter=outstanding]')).to_have_attribute('aria-pressed','true')
         expect(card(page,created['id'])).to_be_visible()
         page.get_by_role('searchbox').fill('invoice confirmation');expect(page.locator('#workspace [data-task]')).to_have_count(1)
         page.get_by_role('searchbox').fill('');load(page)
@@ -117,6 +120,22 @@ try:
             page.get_by_role('button',name='✓ Complete and save',exact=True).click();expect(page.locator('#edit-error')).to_contain_text('Synthetic save failure')
             assert next(a for a in fetch_data(page)['register']['actions'] if a['id']==created['id'])['state']=='open'
             page.unroute('**/api/actions/'+created['id']);close(page)
+        # A delayed old history request must not blank the newly selected view.
+        if not inmemory:
+            held=[]
+            page.route('**/api/audit',lambda route: held.append(route))
+            page.locator('[data-view=history]').click()
+            expect(page.locator('h1')).to_have_text('Online change history')
+            page.wait_for_timeout(100)
+            assert held
+            page.locator('[data-view=backups]').click()
+            expect(page.locator('#history-results .history-entry').first).to_be_visible()
+            assert page.locator('#history-results [data-command=backup]').count()>0
+            held[0].fulfill(status=200,content_type='application/json',body='{"events":[]}')
+            page.wait_for_timeout(100)
+            expect(page.locator('#history-results .history-entry').first).to_be_visible()
+            page.unroute('**/api/audit')
+            page.locator('[data-view=actions]').click()
         # Actual HTTP denies viewer writes and enforces ownership; no browser-only permissions.
         current=fetch_data(viewer)
         denied=viewer.request.patch(BASE+'/api/actions/TASK2',headers={'Origin':BASE,'Content-Type':'application/json','X-Invictus-Request':'1','If-Match':'"'+str(current['version'])+'"'},data={'state':'done','reference':'forged'})
@@ -127,6 +146,8 @@ try:
         # Mobile controls visible, Treasurer role restricted to own tasks.
         mobile=make('treasurer',True);load(mobile,'treasurer')
         assert mobile.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
+        expect(mobile.locator('#top-signout')).to_be_visible()
+        expect(mobile.locator('#top-signout')).to_have_attribute('href','/cdn-cgi/access/logout')
         expect(mobile.locator('#owner-filter')).to_have_value('Treasurer')
         card(mobile,'TASK2').get_by_role('button',name='Edit task',exact=True).click()
         assert mobile.locator('[name=owner] option').count()==1

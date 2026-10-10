@@ -11,7 +11,7 @@ ENV NODE_ENV=production PUBLIC_ORIGIN=https://invictus.layer-8-labs.com PORT=808
 WORKDIR /opt/invictus
 COPY --from=build /opt/invictus/online-dist ./online-dist
 COPY app/core.js ./app/
-COPY server/auth.mjs server/worker.mjs ./server/
+COPY server/auth.mjs server/worker.mjs server/action-update.mjs ./server/
 COPY homelab/*.mjs ./homelab/
 COPY migrations/*.sql ./migrations/
 RUN mkdir /data /backups && chown node:node /data /backups
