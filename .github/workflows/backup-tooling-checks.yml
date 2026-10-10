@@ -30,3 +30,6 @@ jobs:
           )
           if ($ParseErrors.Count) { throw ($ParseErrors | Out-String) }
           Write-Host 'PowerShell syntax valid. No credentials configured or deployment attempted.'
+      - name: Authorisation flows with fake CLI and fake Cloudflare reads
+        shell: pwsh
+        run: ./tests/setup_mock.ps1
