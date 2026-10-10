@@ -1,26 +1,44 @@
 # Backup-only local replication
 
-Owner requirement, 10 October 2026: production entirely on Cloudflare and GitHub; local replication ONLY for backups.
+Production remains entirely Cloudflare + GitHub. Nothing in the home lab serves this application. Local activity below is ONLY backup collection/verification.
 
-**Status: required design, not an installed or verified backup schedule.** No local collector, cloud export schedule, backup credentials, destination or encryption key has been configured by this change. Do not report existing Docker backup code as backing up D1; it does not.
+**Tooling implemented; production backup jobs and local replication are not yet enabled or verified.** Synthetic tests are not evidence of a real backup.
 
-## Required separation
+## Cloud backup
 
-Cloudflare D1 is the only live membership database. GitHub holds application source, schema migrations and deployment configuration. A local Git mirror backs up code, not the D1 database or changes entered through the app. Private minutes/summons/source evidence must also have a protected archive; never assume they are contained in a database export.
+backup-cloudflare.yml runs on GitHub-hosted infrastructure only. It is gated by main, this exact repository, private visibility, and INVICTUS_BACKUPS_ENABLED=true. It is therefore inactive until configured. The nightly schedule is 19:23 UTC (03:23 Singapore), plus manual dispatch. GitHub scheduled delivery may be delayed; this is not a guaranteed backup SLA.
 
-The runtime must not read files from a home machine, wait for a backup host, or connect to a home IP. The local collector initiates outbound authenticated downloads only. No inbound listener, SSH hosting dependency, reverse proxy, Tunnel, port forwarding, bidirectional sync or automatic failover. Local edits cannot be pushed into production by the backup process.
+cloud_backup.py rechecks repository privacy using GitHub's live API. It discovers exactly one existing Invictus D1 database, continuously polls a full SQL export, downloads it without forwarding the API token to the signed download URL, and bundles it with full fetched Git history. The SQL includes the data, server audit and recovery snapshot tables. Manifest and plaintext exist only in a temporary private runner directory during processing. An interruption/timeout may leave ephemeral plaintext on that disposable runner until destruction; it is never an artifact path.
 
-## Planned backup flow
+The archive is compressed then encrypted using the standard age program and an X25519 public recipient. The private decryption identity is NOT stored in GitHub, Cloudflare, this repository or the backup collector. Keep it in an independent secure recovery location and confirm recoverability.
 
-1. Produce a consistent full D1 SQL export in the cloud, including data and audit/recovery tables, with the source revision/time and code/migration version recorded in a manifest. Cloudflare's export API can briefly make D1 unavailable; use a quiet period and bounded continuous polling until complete. Never log the signed download URL or dump data.
-2. Encrypt the export before placing it in cloud backup storage or downloadable artifacts. Use a supported encryption tool, not an invented cipher. Protect recovery-key custody independently of the repository and verify decryption. Nothing sensitive is committed to Git, including after it becomes private.
-3. The local backup collector downloads versioned encrypted exports and the repository mirror using least-privilege read credentials. Prefer read-only access to encrypted backup objects rather than a Cloudflare deployment/write token on the backup host. Record success only after checksum verification and atomic completion.
-4. Retain dated snapshots; do not propagate upstream deletion to all local backups. Proposed starting retention: 30 daily and 12 monthly copies, adjustable to storage policy. Use separate immutable/read-only protection where available; a writable mirror alone is not protection against corruption/deletion.
-5. Expose last successful export, last successful local receipt and failed/stale backup state without including member information in logs. Proposed starting cadence: nightly; alert when no verified local receipt exists for 36 hours. These settings are not yet scheduled.
-6. Rehearse restore into a separate recovery database, verify integrity and key tables/counts, then compare a supported working-record revision. Never test by overwriting production. Keep secrets out of restored source trees.
+Only backup.tar.age and its nonsensitive checksum/identity receipt are uploaded as GitHub artifacts. The artifact name identifies run and attempt. Requested cloud retention is 90 days, subject to repository/plan policy and Actions/storage allowance. No plan upgrade or billing change has been made. GitHub artifacts are an export staging copy, not immutable disaster storage.
 
-A cloud export succeeding is not proof that the local copy exists. A checksum is not a restore test. Existing in-D1 revision snapshots/provider recovery are additional layers, not substitutes for this independent copy.
+The source bundle contains Git refs fetched by full-history checkout. It is not a backup of GitHub issues, PR discussions, secrets, account settings, Git LFS object payloads, submodules or uncommitted source files. Do not claim complete private-evidence coverage: minutes/summons not committed to the verified private repo need a separate protected archive. A normal Git clone alone is not a D1 backup.
 
-## Setup still required
+D1 export can briefly prevent live queries; the nightly window is deliberate. Deployment and export share the same workflow concurrency group and do not overlap with each other. The online application does not depend on the backup job succeeding.
 
-After the cloud site is live: choose the permitted local backup folder/device, cloud encrypted-export location, encryption/recovery key custody and collector credentials. Implement/test the exporter and pull-only collector, verify first scheduled copies and perform a documented restore. No need to decide a home-lab application server, because there is none.
+## Outbound-only local collector
+
+python scripts/pull_backups.py --destination <private-backup-folder> runs only on the chosen backup device. It requires Python 3.11+ and an authenticated gh CLI with read-only repository/Actions access. It does not require a Cloudflare credential, private decryption key, inbound port, Tunnel, app server, Docker or SSH access from outside the lab.
+
+The collector checks live repository privacy, considers the latest 100 successful main-branch backup runs, downloads each matching nonexpired artifact not already held, validates expected contents/run/commit/checksum and publishes each local generation by same-filesystem rename. Existing generations are never silently overwritten or deleted. It revalidates previously held copies and reports the newest verified cloud generation as stale if older than 36 hours. Failure returns nonzero; no push or upstream change is possible through this script. A local lock prevents overlapping collectors.
+
+last-receipt.json is written only after usable copies were verified. It records check time and latest cloud backup time separately and always states restore_verified: false. This is checksum validation, not cryptographic decryption or a restore test. Configure a local scheduler/monitor to surface nonzero exits and stale receipts; no notification channel or scheduler has been installed. A receiver failure cannot be detected from successful cloud export alone.
+
+The destination must be outside the code checkout. Use a restricted local folder/volume and versioned NAS/offline snapshots as appropriate. The collector deliberately does not implement automatic pruning or upstream-deletion propagation; review retention/capacity separately. Earlier proposed 30 daily/12 monthly retention is not automatically applied. Home-lab downtime does not affect the live website.
+
+## Activation still required
+
+1. Deploy/protect the live Cloudflare site and verify its data before enabling export.
+2. Make the repository private and verify it. Store production backup secrets: CLOUDFLARE_BACKUP_TOKEN (a separate least-privilege token sufficient for D1 listing/export only), BACKUP_AGE_RECIPIENT (the public recipient), and the already configured CLOUDFLARE_ACCOUNT_ID. Never reuse the broad deployment token on the local backup host.
+3. Set INVICTUS_BACKUPS_ENABLED=true and run the backup workflow once. Check a complete encrypted artifact, not just a green skipped workflow.
+4. Choose the private local destination and run/schedule the outbound collector. Verify both the cloud export and local receipt. No backup host address is required by production.
+5. Decrypt a retained artifact in an isolated recovery workspace, validate manifest hashes, import SQL into a fresh test database and verify data/audit/recovery tables and source Git bundle. Do not overwrite production to test backups. Record a real restore exercise before sole reliance.
+
+tests/backup_crypto_integration.py performs real age encryption/decryption, wrong-key and tampering rejection, SQLite integrity/audit recovery and Git bundle recovery using ONLY synthetic data. This checks the package format; it does not validate the actual provider export, real credentials, local scheduler or production restoration.
+
+References:
+- https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/export/
+- https://age-encryption.org/
+- https://cli.github.com/manual/gh_run_download

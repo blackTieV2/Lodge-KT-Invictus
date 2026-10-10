@@ -1,0 +1,32 @@
+name: Backup and setup tooling checks
+on:
+  pull_request:
+  push:
+    branches: [main, feature/cloud-setup-backup-tools]
+permissions:
+  contents: read
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Backup polling, packaging and receiver tests
+        run: python -m unittest discover -s tests -p 'test_cloud_backup.py' -v
+      - name: Install standard encryption tool from signed Ubuntu packages
+        run: sudo apt-get update && sudo apt-get install -y age
+      - name: Real encryption and isolated data/code restore (synthetic)
+        run: python tests/backup_crypto_integration.py
+      - name: Parse PowerShell authorisation script without executing it
+        shell: pwsh
+        run: |
+          $Tokens = $null
+          $ParseErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path './scripts/Configure-Cloudflare.ps1'),
+            [ref]$Tokens, [ref]$ParseErrors
+          )
+          if ($ParseErrors.Count) { throw ($ParseErrors | Out-String) }
+          Write-Host 'PowerShell syntax valid. No credentials configured or deployment attempted.'

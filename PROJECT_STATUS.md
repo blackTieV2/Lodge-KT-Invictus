@@ -1,30 +1,28 @@
-# Project status — Cloudflare-only target, local backup copies only
+# Project status — Cloudflare setup and backup tooling
 
-Checkpoint: 10 October 2026. Current stage: hosting correction QA / deployment authorisation.
+Checkpoint: 10 October 2026. Cloudflare-only decision and PR #8 are merged at `5d473150a47608077561e3abc26f7403db68f3d0`. No product approval is outstanding. The live site is to run only on Cloudflare at invictus.layer-8-labs.com, using the existing Worker, D1 and Access; GitHub hosts code and deployment. Local replication is backup-only. No home-lab listener, Tunnel, port-forward or app hosting.
 
-Explicit owner decision: "entirely cloudflare and git only, with local replication ONLY for backups". This supersedes the previous home-lab runtime and local-file delivery. No repeat intake/design approval is needed. The home lab stays internal; local replication is not hosting or live bidirectional data sync.
+## Starting state verified
 
-Starting verified main: `851626f97352132525d881208df89bfcbb9ddd95`; isolated work branch `feature/cloudflare-only-backups`. Repository was PUBLIC at recon and visibility was not changed. No private data was retrieved, altered or published for this change. A local clone attempt failed at DNS before checkout; repository changes use isolated Git objects via the connected API, not a user working tree.
+Main matched the merged PR #8. Repository remained public. No manually dispatched workflow runs were recorded at recon; no production deployment is claimed. The available remote browser profile had no saved Cloudflare login, and no Cloudflare connector was available from discovery. The user's PC Wrangler login does not provide this chat or GitHub Actions with the PC credentials.
 
-## Changed
+AGENTS.md and current deployment/backup contracts were read. The new work is isolated on feature/cloud-setup-backup-tools. A local Git clone failed at DNS before checkout. New scripts were prepared in a separate container directory, not the user's working tree. No actual private register, source documents or credentials were read or uploaded.
 
-- One Cloudflare Workers Custom Domain: invictus.layer-8-labs.com; D1 is the live database, existing Access/role checks stay in place.
-- workers.dev and preview URLs disabled; authenticated Worker runs before assets.
-- Read-only account/zone/DNS/Worker ownership preflight; refuse conflicting DNS records and other-service takeover.
-- Cloudflare deployment workflow is primary again, main/manual only, with production secrets and serial execution. No self-hosted runner.
-- Removed automatic home-lab image publication. Existing historical image/source/test work was not erased or deployed.
-- Canonical context, README and backup-only policy corrected. Existing member UI, API and schema unchanged.
+## Added
 
-## Verification boundary
+- scripts/Configure-Cloudflare.ps1: one-time administrative authorisation helper; hidden token input, active zone/account/API read preflight, private officer-role input, GitHub production environment secret writes over stdin, existing environment protections preserved, optional hosted workflow dispatch. No local app or credential file.
+- scripts/cloud_backup.py and backup-cloudflare.yml: full D1 SQL export with continuous bounded polling; source Git bundle; compressed archive encrypted with standard age; ciphertext/receipt only as GitHub artifacts. Requires main, private repo verified live and an explicit enable flag, with separate backup credentials.
+- scripts/pull_backups.py: outbound GitHub-only backup pull, run/commit/size/checksum validation, atomic generation storage, retained historical copies, lock and stale-copy failure. No Cloudflare write token, inbound access or upstream data sync.
+- Synthetic unit and actual encryption/SQLite/Git restore tests; PowerShell parser check; setup/backup documentation.
 
-Ten new target/preflight/probe tests passed in the preparation runtime, with Node 22.16.0. They test the fixed Custom Domain, disabled alternate URLs, ownership checks, protection against DNS overwrite and anonymous-probe classification. These are synthetic tests, not a live Cloudflare deployment. The PR's CI, existing real-browser tests and actual Worker dry-run must be checked separately before reporting success.
+No user-interface, Worker/API, membership schema, DNS, Access policy, database or official account/KOL changes are included in this increment. No domain purchase, plan upgrade or live credential configuration has occurred.
 
-## Not yet completed
+## Tests and limitations
 
-Cloudflare production account authorisation in hosted CI; deployment and real login/denied-user/save/reopen tests; initial protected private data load. No published Invictus site is claimed. No home-lab host, DNS, firewall, Tunnel or reverse proxy was changed.
+13 backup unit tests passed in the preparation container, including bounded polling, unsafe URL refusal, invalid artifact rejection and failure cleanup. The age executable and PowerShell were unavailable in that runtime; the new GitHub tooling workflow therefore runs the real encryption/decryption/isolated restore and PowerShell parsing checks. Check the actual PR/head CI before claiming they passed. All fixtures are synthetic, and unit test encryption substitutes are explicitly labelled.
 
-Backup replication is a specified requirement, NOT a running job at this checkpoint. Its collector, schedule, encrypted export storage, local destination/key custody and restore rehearsal remain to be implemented/configured. D1 revision snapshots alone are not independent backups. Code replication and database export must both be covered; failure/staleness reporting and no deletion propagation are required.
+Even after CI passes, actual Cloudflare permissions/SQL export, production login/data persistence, scheduled artifact creation, local backup receipt and a real-data isolated restore remain unverified. No cloud backup schedule is activated until INVICTUS_BACKUPS_ENABLED=true and privacy/secret requirements pass. No local scheduler/destination/key has been configured. Backup artifacts are staging, not immutable storage; private decryption keys remain separately held.
 
-## Next action
+## Next operational action
 
-Authorise the Cloudflare account to the GitHub production workflow with the scoped deployment token, account ID and officer-role secret; deploy solely to the selected Custom Domain. Then initialise the protected cloud register and establish one-way encrypted cloud-to-local backup collection. Skip all previous SSH/Docker-host prompts. No local officer-side app or routine file handover is part of the product. Never paste tokens into chat or Git files.
+Use the scoped Cloudflare API token with the authorisation helper to configure only this repository's production secrets and start the hosted deployment. Never paste the token in chat. After the real cloud site and login/data checks pass, load the reviewed register, verify repository privacy and enable encrypted export plus the chosen local backup collector. Do not ask for Docker-host/SSH details or another intake approval.
