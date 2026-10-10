@@ -13,6 +13,7 @@
 !server/
 !server/auth.mjs
 !server/worker.mjs
+!server/action-update.mjs
 !homelab/
 !homelab/*.mjs
 !migrations/
