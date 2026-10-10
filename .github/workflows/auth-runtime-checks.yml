@@ -1,0 +1,27 @@
+name: Workers sign-in runtime checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  auth-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install the deployment-pinned Workers runtime for isolated tests
+        run: npm install --prefix "$RUNNER_TEMP/invictus-auth-runtime" --no-save --package-lock=false --no-audit --no-fund wrangler@4.149.0
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+      - name: Reproduce old failure and verify sign-in using real workerd APIs
+        run: node --test tests/auth-workerd.test.mjs
+        env:
+          INVICTUS_WRANGLER_PACKAGE: ${{ runner.temp }}/invictus-auth-runtime/node_modules/wrangler/package.json
+          WRANGLER_SEND_METRICS: 'false'

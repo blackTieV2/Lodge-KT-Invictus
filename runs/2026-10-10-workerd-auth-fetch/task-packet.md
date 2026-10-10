@@ -1,0 +1,11 @@
+# Workerd sign-in retrieval correction
+
+Target: blackTieV2/Lodge-KT-Invictus, production Cloudflare Worker. Base main `0d7bc9518c7b3c358828af60ab9de8aeea7e186f`, tree `5213cefe8b8308c2dc3e8a2c4ba522698f981469`. No open PR at recon. Read AGENTS.md, PROJECT_STATUS.md, CONTEXT.md, selected Cloudflare-only design, production auth source and current CI. This is the already authorised deployment bugfix, not a hosting redesign.
+
+User symptom: Worker returns the key-retrieval 503 after the Access email-login page. Source has redirect:error in that fetch; the Node/browser mock suite did not execute native workerd option handling. Primary runtime references: https://developers.cloudflare.com/workers/testing/miniflare/writing-tests/ and https://github.com/cloudflare/workers-sdk/blob/main/packages/miniflare/README.md . Public signing-key reference: https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/ .
+
+Changes: one fetch option plus explanatory comments; real-workerd signed synthetic authentication tests and workflow; project checkpoint and this packet. Do not change token validation requirements, permitted officers, provider settings, source files, DNS or database. The key-fetch redirect is returned and rejected, never silently followed.
+
+Preparation uses a separate container directory, not the user's working tree. Original auth bytes matched the live Git blob SHA. Local GitHub/npm DNS failed, so source/test syntax and YAML parse are the only preparation checks; the new workerd workflow provides runtime evidence. No production credentials available to this process, and none requested.
+
+Acceptance: original option reproduces 503 before outbound transport; corrected option validates signed tokens using real Web Crypto; wrong signature/issuer/audience/expiry/user fails, no credential forwarding, and all redirected/non-success key responses fail closed. Inspect current-head CI, review and changed-file list before merging. A fresh main deployment and actual officer login are separate from the test result. No synthetic token is ever sent to the live service. No database seed or backup activation occurs in this patch.
