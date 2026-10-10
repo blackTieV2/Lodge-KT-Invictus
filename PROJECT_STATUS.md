@@ -1,30 +1,34 @@
-# Project status — Cloudflare-only target, local backup copies only
+# Project status — tested cloud setup and backup tooling, live authorisation still required
 
-Checkpoint: 10 October 2026. Current stage: hosting correction QA / deployment authorisation.
+Checkpoint: 10 October 2026. Cloudflare-only PR #8 is merged at `5d473150a47608077561e3abc26f7403db68f3d0`. The owner instructed continuation; no product approval is outstanding. Runtime is Cloudflare Workers/D1/Access at invictus.layer-8-labs.com, with GitHub code/deployment. Local replication is backup-only. No home-lab app, listener, Tunnel, port forwarding, SSH target or routine officer file handover.
 
-Explicit owner decision: "entirely cloudflare and git only, with local replication ONLY for backups". This supersedes the previous home-lab runtime and local-file delivery. No repeat intake/design approval is needed. The home lab stays internal; local replication is not hosting or live bidirectional data sync.
+## Starting live state
 
-Starting verified main: `851626f97352132525d881208df89bfcbb9ddd95`; isolated work branch `feature/cloudflare-only-backups`. Repository was PUBLIC at recon and visibility was not changed. No private data was retrieved, altered or published for this change. A local clone attempt failed at DNS before checkout; repository changes use isolated Git objects via the connected API, not a user working tree.
+Main matched merged PR #8 and the repository remained public at recon. No manually dispatched workflow runs were recorded. No production deployment is claimed. Remote browser profile had no saved Cloudflare login and connector discovery returned no Cloudflare integration. GitHub secret presence/values are not inspectable through the available connector; do not infer that the user has or has not independently configured secrets. No deployment credentials have been made available to this session. PC Wrangler OAuth does not grant them to the chat or hosted Actions.
 
-## Changed
+Read AGENTS.md, current context and deployment/backup contracts. Work is isolated on feature/cloud-setup-backup-tools / PR #9, based on main above. A local clone failed DNS before checkout. New scripts were prepared/tested in a separate container directory; no user working tree was changed. No actual private register, source documents or credentials were retrieved or published.
 
-- One Cloudflare Workers Custom Domain: invictus.layer-8-labs.com; D1 is the live database, existing Access/role checks stay in place.
-- workers.dev and preview URLs disabled; authenticated Worker runs before assets.
-- Read-only account/zone/DNS/Worker ownership preflight; refuse conflicting DNS records and other-service takeover.
-- Cloudflare deployment workflow is primary again, main/manual only, with production secrets and serial execution. No self-hosted runner.
-- Removed automatic home-lab image publication. Existing historical image/source/test work was not erased or deployed.
-- Canonical context, README and backup-only policy corrected. Existing member UI, API and schema unchanged.
+## Implemented
 
-## Verification boundary
+- scripts/Configure-Cloudflare.ps1: one-time administrative helper with hidden token entry, read-only zone/account/API preflight, explicit officer sign-in addresses, production environment secrets via stdin, preservation of existing environment protection, optional GitHub-hosted deployment request. No local credential file/app.
+- scripts/cloud_backup.py plus backup-cloudflare.yml: continuously polled D1 SQL export, fetched Git-history bundle, compressed standard age encryption, ciphertext/receipt-only artifacts. Main/private-repo/live-privacy/enable-flag guards and separate backup credentials. Decryption identity stays outside both cloud services.
+- scripts/pull_backups.py: outbound GitHub-only collector with exact workflow/run/commit/contents/size/checksum checks, lock, atomic generation storage, retention of prior copies and stale-copy failure. No Cloudflare credential, inbound access, deletion propagation or upstream writes.
+- Unit, actual cryptographic/SQLite/Git recovery, parser and mocked authorisation-flow tests; setup and backup operating docs.
 
-Ten new target/preflight/probe tests passed in the preparation runtime, with Node 22.16.0. They test the fixed Custom Domain, disabled alternate URLs, ownership checks, protection against DNS overwrite and anonymous-probe classification. These are synthetic tests, not a live Cloudflare deployment. The PR's CI, existing real-browser tests and actual Worker dry-run must be checked separately before reporting success.
+UI, Worker/API and membership schema are unchanged. No DNS, Access policy, database, official KOL/account, plan or billing changes were made by this increment. No real credentials were stored by the assistant.
 
-## Not yet completed
+## Observed verification
 
-Cloudflare production account authorisation in hosted CI; deployment and real login/denied-user/save/reopen tests; initial protected private data load. No published Invictus site is claimed. No home-lab host, DNS, firewall, Tunnel or reverse proxy was changed.
+Implementation head `474b865e3d2f3905ef4cf4be57543931ed318b78`, expanded test head `bf11ebcbf26ce029a2ad0cc4dcb8d0f79eaf148b`.
 
-Backup replication is a specified requirement, NOT a running job at this checkpoint. Its collector, schedule, encrypted export storage, local destination/key custody and restore rehearsal remain to be implemented/configured. D1 revision snapshots alone are not independent backups. Code replication and database export must both be covered; failure/staleness reporting and no deletion propagation are required.
+13 backup unit tests passed in the preparation container. That runtime lacked age and PowerShell, so no local real-encryption/PowerShell claim is made. GitHub tooling run `38043302653`, job `114187706997`, succeeded at expanded test head: all backup unit tests; real age encrypt/decrypt, wrong-key/tamper rejection, isolated SQLite integrity/audit/snapshot recovery and Git bundle recovery; PowerShell parser; six mocked authorisation scenarios covering successful existing/new environment, cancellation, duplicate email, missing Zero Trust and failed secret upload. Mock CLI assertions verify secret stdin rather than command arguments and no dispatch after failure. All identities/data/keys are synthetic.
+
+Existing online Worker build and real browser workflow also succeeded at initial implementation head (run `38043034898`); latest-head results must be read separately. Current documentation-only updates do not alter tested executable code. Automated review status is on PR #9; do not describe it as a production audit.
+
+## Operational limits
+
+No live provider deployment, actual D1 export, production login/save/reopen, local receipt or real-data restore has been performed by this session. Backup workflow is not activated until INVICTUS_BACKUPS_ENABLED=true and privacy/secret checks pass. No local scheduler, storage destination or recovery key has been configured. Artifacts are temporary cloud staging, not immutable disaster storage. Source bundle reflects the fetched workflow checkout, not an independently verified deployed Worker version; GitHub settings/secrets/issues, LFS/submodule payloads and uncommitted private evidence require separate recovery arrangements.
 
 ## Next action
 
-Authorise the Cloudflare account to the GitHub production workflow with the scoped deployment token, account ID and officer-role secret; deploy solely to the selected Custom Domain. Then initialise the protected cloud register and establish one-way encrypted cloud-to-local backup collection. Skip all previous SSH/Docker-host prompts. No local officer-side app or routine file handover is part of the product. Never paste tokens into chat or Git files.
+Authorise only this GitHub production workflow using a scoped Cloudflare deployment API token and the selected application sign-in emails. Use Configure-Cloudflare.ps1, not chat-pasted secrets or a copied Wrangler credential file. Then verify protected live deployment and authorised/denied-user/data persistence checks, load the reviewed register privately, and activate/test backup export plus the chosen outbound local collector. Do not restart intake or request home-lab hosting details.

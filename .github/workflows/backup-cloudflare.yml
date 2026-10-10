@@ -1,0 +1,43 @@
+name: Encrypted Cloudflare database and code backup
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 19 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: invictus-online-production
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.repository == 'blackTieV2/Lodge-KT-Invictus' && github.ref == 'refs/heads/main' && github.event.repository.private == true && vars.INVICTUS_BACKUPS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install standard encryption tool
+        run: sudo apt-get update && sudo apt-get install -y age
+      - name: Export live D1 and encrypt database plus fetched Git history
+        run: python scripts/cloud_backup.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_BACKUP_TOKEN: ${{ secrets.CLOUDFLARE_BACKUP_TOKEN }}
+          BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+      - name: Retain encrypted backup only (never SQL, keys or credentials)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: invictus-backup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/invictus-encrypted-backup/backup.tar.age
+            ${{ runner.temp }}/invictus-encrypted-backup/receipt.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+      - name: Remove ephemeral encrypted output from runner
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/invictus-encrypted-backup"
