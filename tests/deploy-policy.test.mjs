@@ -9,3 +9,49 @@ test('unrelated deny and MFA policies and input objects are not changed',()=>{co
 test('matching officer lists are idempotent regardless of order',()=>{const p=policy();p.include=Object.keys(roles).reverse().map(email=>({email:{email}}));assert.equal(officerPolicyUpdate([p],roles).changed,false);});
 test('missing or duplicated managed policy fails closed',()=>{assert.throws(()=>officerPolicyUpdate([],roles));assert.throws(()=>officerPolicyUpdate([policy(),policy()],roles));});
 test('shared, changed-decision, broad or unknown policy configuration requires review',()=>{for(const delta of [{reusable:true},{app_count:2},{decision:'bypass'},{include:[{everyone:{}}]},{future_security_setting:true}])assert.throws(()=>officerPolicyUpdate([{...policy(),...delta}],roles));});
+
+// These extension fields are synthetic. The failed production log did not reveal
+// the actual extra field names, so no real policy payload is copied into tests.
+const matchingPolicy=()=>({...policy(),include:Object.keys(roles).map(email=>({email:{email}}))});
+test('unchanged officer list needs no writable payload even with extra response fields',()=>{
+  const p={...matchingPolicy(),provider_extension:{enabled:true},provider_metadata:'synthetic'};
+  const before=structuredClone(p),result=officerPolicyUpdate([p],roles);
+  assert.deepEqual(result,{id:p.id,body:null,changed:false});
+  assert.deepEqual(p,before);
+});
+test('known unchanged policy also emits no update body',()=>{
+  const p=matchingPolicy();assert.deepEqual(officerPolicyUpdate([p],roles),{id:p.id,body:null,changed:false});
+});
+test('all pre-existing restrictions survive an unknown-field no-op unchanged',()=>{
+  const p={...matchingPolicy(),future_restriction:{requires_review:true}};
+  const before=structuredClone(p);officerPolicyUpdate([p],roles);
+  assert.deepEqual(p,before);
+  for(const key of ['require','exclude','mfa_config','approval_groups','approval_required','precedence'])assert.deepEqual(p[key],before[key]);
+});
+test('the deployment caller sends no PUT for an unchanged policy',async()=>{
+  const p={...matchingPolicy(),provider_extension:true};const sent=[];
+  const update=officerPolicyUpdate([p],roles);
+  if(update.changed)sent.push({id:update.id,body:update.body});
+  assert.deepEqual(sent,[]);
+});
+test('changed officer list still rejects unfamiliar settings without exposing their values',()=>{
+  const p={...matchingPolicy(),future_restriction:{private_value:'synthetic-do-not-log'}};
+  assert.throws(()=>officerPolicyUpdate([p],{...roles,'another@example.invalid':'viewer'}),error=>{
+    assert.match(error.message,/Unknown Access policy settings/);
+    assert.ok(!error.message.includes('synthetic-do-not-log'));return true;
+  });
+});
+test('matching email addresses never bypass shared or non-allow policy checks',()=>{
+  for(const delta of [{reusable:true},{app_count:2},{decision:'bypass'},{decision:'deny'},{id:''}])
+    assert.throws(()=>officerPolicyUpdate([{...matchingPolicy(),provider_extension:true,...delta}],roles));
+});
+test('extra broad include conditions are rejected before accepting a no-op',()=>{
+  const p=matchingPolicy();p.include.push({everyone:{}});p.provider_extension=true;
+  assert.throws(()=>officerPolicyUpdate([p],roles),/Managed include conditions were changed/);
+});
+test('missing ambiguous and invalid desired identities remain rejected on no-op path',()=>{
+  const p={...matchingPolicy(),provider_extension:true};
+  assert.throws(()=>officerPolicyUpdate([p,p],roles),/missing or ambiguous/);
+  assert.throws(()=>officerPolicyUpdate([p],{}),/Invalid officer email list/);
+  assert.throws(()=>officerPolicyUpdate([p],{' ADMIN@example.invalid':'admin'}),/Invalid officer email list/);
+});

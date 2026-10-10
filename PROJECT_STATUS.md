@@ -1,34 +1,29 @@
-# Project status — tested cloud setup and backup tooling, live authorisation still required
+# Project status — authorisation configured; Access no-op deployment fix
 
-Checkpoint: 10 October 2026. Cloudflare-only PR #8 is merged at `5d473150a47608077561e3abc26f7403db68f3d0`. The owner instructed continuation; no product approval is outstanding. Runtime is Cloudflare Workers/D1/Access at invictus.layer-8-labs.com, with GitHub code/deployment. Local replication is backup-only. No home-lab app, listener, Tunnel, port forwarding, SSH target or routine officer file handover.
+Checkpoint: 10 October 2026. Production remains entirely Cloudflare Workers/D1/Access at invictus.layer-8-labs.com, with GitHub source/deployment. Local replication is backup-only. No home-lab hosting, listener, SSH, Tunnel or local officer application.
 
-## Starting live state
+## Verified starting state
 
-Main matched merged PR #8 and the repository remained public at recon. No manually dispatched workflow runs were recorded. No production deployment is claimed. Remote browser profile had no saved Cloudflare login and connector discovery returned no Cloudflare integration. GitHub secret presence/values are not inspectable through the available connector; do not infer that the user has or has not independently configured secrets. No deployment credentials have been made available to this session. PC Wrangler OAuth does not grant them to the chat or hosted Actions.
+Main: `3ceff9a3a59230c8234afc9cd1141914d7f99d6e`, with Cloudflare-only PR #8 and setup/backup PR #9 merged. The owner has run Configure-Cloudflare.ps1 again with a replacement token, three sign-in accounts and explicit CONFIGURE confirmation. Secret values were not retrieved or published; do not request token creation or repeat configuration solely because deployment failed.
 
-Read AGENTS.md, current context and deployment/backup contracts. Work is isolated on feature/cloud-setup-backup-tools / PR #9, based on main above. A local clone failed DNS before checkout. New scripts were prepared/tested in a separate container directory; no user working tree was changed. No actual private register, source documents or credentials were retrieved or published.
+Actual GitHub deployment run `38057989325`, job `114230274158`, used this head and reached the Access policy reconciliation after the earlier 403 failure was resolved for that step. All 39 predeployment tests and the five-file online asset build passed. The job then stopped at `scripts/access-policy.mjs` with `Unknown Access policy settings require review before an update.` This is a code guard failure, not evidence of a further missing token permission. D1 creation and Worker deployment occur after that line and were not reached by this run.
 
-## Implemented
+The log suppresses policy response contents. The specific additional field names are not known and must not be guessed or copied into fixtures as alleged production evidence. Repository was still public in the run metadata. Real register/source documents remain outside GitHub.
 
-- scripts/Configure-Cloudflare.ps1: one-time administrative helper with hidden token entry, read-only zone/account/API preflight, explicit officer sign-in addresses, production environment secrets via stdin, preservation of existing environment protection, optional GitHub-hosted deployment request. No local credential file/app.
-- scripts/cloud_backup.py plus backup-cloudflare.yml: continuously polled D1 SQL export, fetched Git-history bundle, compressed standard age encryption, ciphertext/receipt-only artifacts. Main/private-repo/live-privacy/enable-flag guards and separate backup credentials. Decryption identity stays outside both cloud services.
-- scripts/pull_backups.py: outbound GitHub-only collector with exact workflow/run/commit/contents/size/checksum checks, lock, atomic generation storage, retention of prior copies and stale-copy failure. No Cloudflare credential, inbound access, deletion propagation or upstream writes.
-- Unit, actual cryptographic/SQLite/Git recovery, parser and mocked authorisation-flow tests; setup and backup operating docs.
+## Bounded correction
 
-UI, Worker/API and membership schema are unchanged. No DNS, Access policy, database, official KOL/account, plan or billing changes were made by this increment. No real credentials were stored by the assistant.
+Branch: `fix/access-policy-noop`, based on starting main above. Continue the already approved build/deployment; no architecture or product approval is reopened.
 
-## Observed verification
+The policy planner now checks policy identity, scope, Allow decision and exact email-only include list first. When the desired officer list is already identical, it returns a no-op with no PUT body. Every provider field and restriction remains untouched. Unknown response fields therefore cannot prevent a read-only no-op. When an officer list actually needs changing, the strict unknown-field guard remains, and supported MFA/exclusion/approval/session settings are preserved. Shared, ambiguous, broad-include and non-Allow policies remain blocked.
 
-Implementation head `474b865e3d2f3905ef4cf4be57543931ed318b78`, expanded test head `bf11ebcbf26ce029a2ad0cc4dcb8d0f79eaf148b`.
+Changed application code is limited to this deployment helper, with eight added regression tests. No UI, API, authentication verifier, role map, database schema, workflow triggers or secret values were modified. A fresh deployment must run the corrected main revision; retrying the old workflow SHA would execute the old bug.
 
-13 backup unit tests passed in the preparation container. That runtime lacked age and PowerShell, so no local real-encryption/PowerShell claim is made. GitHub tooling run `38043302653`, job `114187706997`, succeeded at expanded test head: all backup unit tests; real age encrypt/decrypt, wrong-key/tamper rejection, isolated SQLite integrity/audit/snapshot recovery and Git bundle recovery; PowerShell parser; six mocked authorisation scenarios covering successful existing/new environment, cancellation, duplicate email, missing Zero Trust and failed secret upload. Mock CLI assertions verify secret stdin rather than command arguments and no dispatch after failure. All identities/data/keys are synthetic.
+## Validation and execution boundary
 
-Existing online Worker build and real browser workflow also succeeded at initial implementation head (run `38043034898`); latest-head results must be read separately. Current documentation-only updates do not alter tested executable code. Automated review status is on PR #9; do not describe it as a production audit.
+The original six policy tests plus eight new synthetic tests were run against a separately prepared copy in the assistant's container on Node 22.16.0: the old helper failed six of fourteen checks; the corrected helper passed all fourteen. The attempted Git clone failed DNS before a checkout existed; no full local repository test run or user-worktree change is claimed. GitHub CI results and commit comparison must be read live before reporting this patch merged/verified.
 
-## Operational limits
-
-No live provider deployment, actual D1 export, production login/save/reopen, local receipt or real-data restore has been performed by this session. Backup workflow is not activated until INVICTUS_BACKUPS_ENABLED=true and privacy/secret checks pass. No local scheduler, storage destination or recovery key has been configured. Artifacts are temporary cloud staging, not immutable disaster storage. Source bundle reflects the fetched workflow checkout, not an independently verified deployed Worker version; GitHub settings/secrets/issues, LFS/submodule payloads and uncommitted private evidence require separate recovery arrangements.
+No live Cloudflare change was made by preparing this correction. The failed user-triggered run reached policy validation; that is not a successful production launch. Worker deployment, real sign-in, protected data initialisation, live save/reload and cross-officer checks remain required. No new backup schedule was activated; PR #9's exporter/collector and synthetic encryption/restore tests remain delivered code, not evidence of a real D1 backup/local receipt.
 
 ## Next action
 
-Authorise only this GitHub production workflow using a scoped Cloudflare deployment API token and the selected application sign-in emails. Use Configure-Cloudflare.ps1, not chat-pasted secrets or a copied Wrangler credential file. Then verify protected live deployment and authorised/denied-user/data persistence checks, load the reviewed register privately, and activate/test backup export plus the chosen outbound local collector. Do not restart intake or request home-lab hosting details.
+After tests and merge, request a NEW run of deploy-online.yml on main using the already stored production secrets. Do not re-run the old SHA, re-enter the token, change unrelated Cloudflare tokens, or request home-lab configuration. Verify the new run and live Access entry point, then proceed to private register initialisation and backup activation when their separate privacy/key/destination requirements are met.

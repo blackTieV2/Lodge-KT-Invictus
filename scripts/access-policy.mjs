@@ -8,11 +8,18 @@ export function officerPolicyUpdate(policies,roles){
   if(matches.length!==1)throw Error('The managed officer policy is missing or ambiguous; review Access configuration.');
   const current=matches[0];
   if(typeof current.id!=='string'||!current.id||current.decision!=='allow'||current.reusable===true||current.app_count>1)throw Error('Refusing to rewrite an unmanaged, shared or non-allow Access policy.');
-  if(Object.keys(current).some(k=>!writable.includes(k)&&!metadata.includes(k)))throw Error('Unknown Access policy settings require review before an update.');
   if(!Array.isArray(current.include)||current.include.some(r=>Object.keys(r).length!==1||!r.email||Object.keys(r.email).length!==1||typeof r.email.email!=='string'))throw Error('Managed include conditions were changed; review before replacing them.');
   const emails=Object.keys(roles).sort();
   if(!emails.length||emails.some(s=>s!==s.trim().toLowerCase()||!/^\S+@\S+\.\S+$/.test(s)))throw Error('Invalid officer email list.');
+  const changed=JSON.stringify(current.include.map(r=>r.email.email).sort())!==JSON.stringify(emails);
+  // Reading an already-correct policy is not rewriting it. Do not manufacture a
+  // PUT body or reject response extensions when no officer change is required.
+  // Unknown fields (including restrictions) stay untouched on the provider.
+  if(!changed)return {id:current.id,body:null,changed:false};
+  // Only real writes need a fully understood schema; never silently discard
+  // unfamiliar restrictions when an officer list actually needs changing.
+  if(Object.keys(current).some(k=>!writable.includes(k)&&!metadata.includes(k)))throw Error('Unknown Access policy settings require review before an update.');
   const body=Object.fromEntries(writable.filter(k=>Object.hasOwn(current,k)).map(k=>[k,structuredClone(current[k])]));
   body.include=emails.map(email=>({email:{email}}));
-  return {id:current.id,body,changed:JSON.stringify(current.include.map(r=>r.email.email).sort())!==JSON.stringify(emails)};
+  return {id:current.id,body,changed:true};
 }
