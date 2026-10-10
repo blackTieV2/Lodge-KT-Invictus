@@ -31,7 +31,9 @@ export async function authenticate(request, env) {
   if (!entry || Date.now() - entry.at > 300000 ||
       (!entry.keys.some(k => k.kid === header.kid) && Date.now() - entry.at > 30000)) {
     try {
-      const response = await fetch(issuer + '/cdn-cgi/access/certs', { redirect: 'error', signal: AbortSignal.timeout(5000) });
+      // Workerd supports manual redirects; reject non-2xx below without following
+      // another location. Do not use redirect:'error' (rejected by the runtime).
+      const response = await fetch(issuer + '/cdn-cgi/access/certs', { redirect: 'manual', signal: AbortSignal.timeout(5000) });
       if (!response.ok) throw Error();
       const body = await response.json();
       if (!Array.isArray(body.keys) || body.keys.length > 20) throw Error();

@@ -1,29 +1,23 @@
-# Project status — authorisation configured; Access no-op deployment fix
+# Project status — deployed, sign-in runtime correction under test
 
-Checkpoint: 10 October 2026. Production remains entirely Cloudflare Workers/D1/Access at invictus.layer-8-labs.com, with GitHub source/deployment. Local replication is backup-only. No home-lab hosting, listener, SSH, Tunnel or local officer application.
+Checkpoint: 10 October 2026. Cloudflare-only production at invictus.layer-8-labs.com; GitHub owns source/deployment, local replication is backup-only. No home-lab app, listener, SSH or Tunnel. Continue the already approved bugfix/deployment work; no product approval is reopened.
 
-## Verified starting state
+## Live baseline
 
-Main: `3ceff9a3a59230c8234afc9cd1141914d7f99d6e`, with Cloudflare-only PR #8 and setup/backup PR #9 merged. The owner has run Configure-Cloudflare.ps1 again with a replacement token, three sign-in accounts and explicit CONFIGURE confirmation. Secret values were not retrieved or published; do not request token creation or repeat configuration solely because deployment failed.
+Main `0d7bc9518c7b3c358828af60ab9de8aeea7e186f` contains PR #10. Successful deployment run `38058646398` / job `114232196909` applied the D1 schema and uploaded the Worker and its code-only assets. It verified the Custom Domain and anonymous denial, but not a completed officer login. The user subsequently reached the correct Invictus Access application, used email-code sign-in, then received `Sign-in verification is temporarily unavailable.` from the Worker. No token value or authenticated cookie was supplied for this investigation.
 
-Actual GitHub deployment run `38057989325`, job `114230274158`, used this head and reached the Access policy reconciliation after the earlier 403 failure was resolved for that step. All 39 predeployment tests and the five-file online asset build passed. The job then stopped at `scripts/access-policy.mjs` with `Unknown Access policy settings require review before an update.` This is a code guard failure, not evidence of a further missing token permission. D1 creation and Worker deployment occur after that line and were not reached by this run.
+The source returns that exact 503 from the public-key retrieval block. It calls `fetch(..., {redirect:'error', signal:AbortSignal.timeout(5000)})`. The unsupported redirect option is a reproducible Workers-runtime compatibility candidate; prior Node tests mocked the global fetch and the bundle dry-run did not execute this authenticated path. The actual real-runtime regression must pass before calling the correction verified.
 
-The log suppresses policy response contents. The specific additional field names are not known and must not be guessed or copied into fixtures as alleged production evidence. Repository was still public in the run metadata. Real register/source documents remain outside GitHub.
+## Minimal correction
 
-## Bounded correction
+Isolated branch `fix/workerd-access-key-fetch`, based on the verified main above. Change only the JWKS fetch redirect mode to `manual`; retain non-2xx rejection, fixed trusted issuer URL, timeout, key-id matching, cryptographic signature checks, issuer/audience/time validation and officer role enforcement. A redirected key response is rejected, never followed. No Access provider/organisation branding, Google configuration, role map, DNS, schema, data or secret change is included.
 
-Branch: `fix/access-policy-noop`, based on starting main above. Continue the already approved build/deployment; no architecture or product approval is reopened.
+Add a real workerd regression workflow using the same pinned Wrangler version as deployment. Test the actual auth module with native workerd Request/fetch/Web Crypto; intercept only the remote transport to return synthetic public keys. The test must reproduce the original generic 503 before transport and verify the corrected signed-login path. Redirect rejection, roles, cache signature checks, tampering, unknown keys, wrong issuer/audience, expiry and missing credentials are also tested. No real cloud identity or sign-in request is used in fixtures.
 
-The policy planner now checks policy identity, scope, Allow decision and exact email-only include list first. When the desired officer list is already identical, it returns a no-op with no PUT body. Every provider field and restriction remains untouched. Unknown response fields therefore cannot prevent a read-only no-op. When an officer list actually needs changing, the strict unknown-field guard remains, and supported MFA/exclusion/approval/session settings are preserved. Shared, ambiguous, broad-include and non-Allow policies remain blocked.
+## Verification boundary
 
-Changed application code is limited to this deployment helper, with eight added regression tests. No UI, API, authentication verifier, role map, database schema, workflow triggers or secret values were modified. A fresh deployment must run the corrected main revision; retrying the old workflow SHA would execute the old bug.
+Original auth source was reconstructed and matched Git blob `4588079200b464d148d328d36e2bee47f3993e7a`. Preparation runtime passed JavaScript syntax checks and workflow YAML parsing. Git clone and npm registry access both failed DNS in that runtime; no local workerd execution or full repository test run is claimed. GitHub CI must be inspected at the current patch head for the actual workerd test results and existing regressions.
 
-## Validation and execution boundary
+After tests/review/merge, a fresh main deployment is needed using the existing secrets. No credential re-entry or project/account configuration change is required by this source fix. The real officer login after redeployment remains the acceptance test; synthetic runtime tests are not a completed live login.
 
-The original six policy tests plus eight new synthetic tests were run against a separately prepared copy in the assistant's container on Node 22.16.0: the old helper failed six of fourteen checks; the corrected helper passed all fourteen. The attempted Git clone failed DNS before a checkout existed; no full local repository test run or user-worktree change is claimed. GitHub CI results and commit comparison must be read live before reporting this patch merged/verified.
-
-No live Cloudflare change was made by preparing this correction. The failed user-triggered run reached policy validation; that is not a successful production launch. Worker deployment, real sign-in, protected data initialisation, live save/reload and cross-officer checks remain required. No new backup schedule was activated; PR #9's exporter/collector and synthetic encryption/restore tests remain delivered code, not evidence of a real D1 backup/local receipt.
-
-## Next action
-
-After tests and merge, request a NEW run of deploy-online.yml on main using the already stored production secrets. Do not re-run the old SHA, re-enter the token, change unrelated Cloudflare tokens, or request home-lab configuration. Verify the new run and live Access entry point, then proceed to private register initialisation and backup activation when their separate privacy/key/destination requirements are met.
+Private-register initialisation, live read/save/reopen/second-officer checks and activation of encrypted backup export/local receipt remain outstanding. Do not call the register populated or backups running. Do not load source records into public Git history. Independent application login-method selection remains a separate improvement; do not alter TracingBoard's shared branding or identity provider to fix this runtime bug.
