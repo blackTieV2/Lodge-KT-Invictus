@@ -1,4 +1,4 @@
-name: Legacy Cloudflare deployment (explicit opt-in)
+name: Deploy Cloudflare-only register
 on:
   workflow_dispatch:
 permissions:
@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main' && vars.INVICTUS_DEPLOYMENT_TARGET == 'cloudflare'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 15
@@ -19,9 +19,9 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - run: node --test tests/online.test.mjs tests/deploy-policy.test.mjs
+      - run: node --test tests/online.test.mjs tests/deploy-policy.test.mjs tests/cloudflare-target.test.mjs
       - run: node scripts/build-online.mjs
-      - name: Protected Cloudflare deployment
+      - name: Protected Cloudflare Custom Domain deployment
         run: node scripts/deploy-online.mjs
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

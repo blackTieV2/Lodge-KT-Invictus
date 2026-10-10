@@ -1,33 +1,37 @@
-# Invictus · Online Register
+# Invictus · Cloudflare Online Register
 
-**Selected address: `https://invictus.layer-8-labs.com`. Open the website, sign in, and use one shared register. No app, scripts, local server or routine file imports on an officer's computer.**
+**Cloudflare and GitHub only. Local replication is for backups only.**
 
-## Home-lab hosting
+Approved address: `https://invictus.layer-8-labs.com`. The Worker is the origin, not a proxy to a home-lab machine. The live register is Cloudflare D1. Officers open the site, sign in through Cloudflare Access and save online. There is no local app, server, routine import/export, Docker host, SSH dependency, home-lab Tunnel or port forwarding.
 
-The owner selected the existing home-lab domain. `Dockerfile` and `homelab/` now run the existing online interface and API on a home-lab Docker server, using a persistent SQLite volume instead of Cloudflare D1. See [the hosting-side deployment guide](deploy/homelab/README.md) and [current verified status](PROJECT_STATUS.md).
+This is the owner's explicit 10 October 2026 correction. It supersedes all local-file and home-lab hosting directions. No further product-scope approval is needed. See PROJECT_STATUS.md for what is actually deployed; repository changes alone are not a live website.
 
-The app remains small: Brother Knight search; membership, evidence, KOL and finance statuses kept separate; source-qualified notes; Registrar/Treasurer follow-ups; proposed GP costs; change history; role-appropriate online edits. All officers use the same hosted database. Concurrent stale edits are rejected rather than overwriting another person's changes.
+## What stays small
 
-The existing signed Cloudflare Access login/role checks remain in place. Access protects sign-in; the app verifies the signed assertion and enforces its own officer permissions. A plain DNS record or Traefik route alone does not provide that login. The home-lab target and identity route need live confirmation before claiming the site is ready; missing configuration or missing authentication does not expose the register.
+The existing web interface and Worker API are reused: search Brother Knights, inspect separate membership/KOL/financial positions, source-qualified notes, Registrar/Treasurer follow-ups, proposed GP costs and change history. Signed authentication, server role controls and conditional versioned saves remain unchanged. A new full accounting system or AI service is not part of this project.
 
-## Hosting-side delivery
+## Cloud deployment
 
-GitHub's `Home-lab register checks` builds/tests the Docker image with synthetic data, verifies non-root/read-only operation and checks records survive container replacement. `Publish tested home-lab image` builds/tests/publishes a code-only image on relevant pushes to main (also manually dispatchable). The workflow reports the immutable image digest; deploying that image requires authorised access to the actual hosting server. It does not deploy to the home lab merely by publishing.
+`Deploy Cloudflare-only register` is a manual GitHub-hosted workflow on main. It requires `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and `OFFICER_ROLES` as private production secrets. A Wrangler login on an administrator's PC does not authorise GitHub Actions; never publish an OAuth token file or paste credentials in chat.
 
-The Compose template uses an existing verified Traefik ingress network and HTTPS resolver, mounts private Access configuration, publishes no host port, and never mounts the Docker socket. No server address, network name, TLS resolver or tunnel has been guessed or applied. These deployment actions belong on the hosting service, not the user's PC.
+The script verifies the active zone/account and that the hostname is vacant or already assigned to this Worker. It refuses to overwrite an existing DNS record or take another service's hostname. It creates/reconciles only this app's Access policy, reuses/provisions D1, deploys to the single Custom Domain and verifies anonymous access is denied. Existing MFA/exclusion requirements are preserved. Other DNS records and all home-lab infrastructure are untouched.
 
-Initial data is loaded once by an authorised administrator/maintainer after real sign-in and protection checks. The runtime does not automatically replace an existing database from Git. No production dataset is bundled into the image. Thereafter officers simply open the site and save online.
+`workers.dev` and preview URLs are explicitly disabled. Code assets are an allowlist; source documents and the repository root are not served. Cloudflare manages the Custom Domain DNS/certificate; no home IP is required. Finish actual allowed/denied login, save/reopen and second-officer checks before calling the site ready.
 
-## Privacy and rule authority
+The initial private register can be loaded once by the authorised administrator after protection checks. The optional private/register.json seed is accepted only after live repository-privacy verification and never overwrites an existing online database. Officers never manage local files during normal use.
 
-The owner intends to make the repository private. Verify that live before committing real source documents; keep all real records, accounts, private screenshots, secrets and backup files out of public Git history and CI output. Both the container build context and published web assets use explicit code-only allowlists. Repository privacy and website access control are separate.
+## Backups, not a second live system
 
-The Statutes of Great Priory of England and Wales and its Provinces Overseas govern the rules. This is a working status register, not statutory adjudication, official KOL integration or an accounting ledger. A payment promise is not a receipt; saving a correction does not post to the Treasurer's books, update KOL, send a message or approve membership. Keep evidence and unresolved qualifications visible.
+GitHub is the code/configuration source; D1 is the live data store. A Git clone is not a database backup. The local copy will be a one-way, versioned, encrypted backup pull of cloud database exports plus a separate Git repository mirror. It will not serve traffic, synchronise edits back, or become automatic failover. Home-lab downtime must not affect the site.
 
-## Recovery
+The backup policy/acceptance requirements are in docs/BACKUP-ONLY.md. Scheduling, credentials, encryption-key custody, destination and a verified restore still need to be configured; this change does not claim backups are running. Existing D1 revision snapshots are same-account recovery history, not an independent backup. Protect and preserve original source documents as well as the structured register.
 
-The database retains the last 60 revision snapshots and a separate server audit. The home-lab runtime additionally creates consistent, verified standalone SQLite backups at startup and every six hours, retaining 28. Default backup storage remains on the same host; establish an authorised off-host backup and a real restore exercise before relying on this as the sole operational record. Original sources remain necessary.
+## Privacy and authority
 
-## Prior Cloudflare-only build
+The owner will make the repository private. Until verified private, no real member data, minutes, summons, account records, private screenshots or backup payloads may enter Git history or CI artifacts. Website access protection remains necessary even with a private repo. Secrets never belong in Git, including after visibility changes.
 
-`server/worker.mjs` and the Cloudflare deployment scripts remain for regression/portability. The legacy deployment workflow requires explicit `INVICTUS_DEPLOYMENT_TARGET=cloudflare` configuration; it is not the selected home-lab delivery. The portable local-file interface under `app/` is retained only as previous work/core regression code. Do not deliver it again as the user-facing solution.
+The Statutes of Great Priory of England and Wales and its Provinces Overseas govern membership rules. This app maintains a working status register; saving does not update KOL, post to official accounts, send correspondence or certify membership.
+
+## Previous work
+
+Legacy Docker/home-lab code and tests are retained as historical code, not the deployment path. Automatic home-lab image publication has been removed. Previously published images were not deleted. Earlier local-file instructions and home-lab hosting documents must not be used to direct current deployment.
