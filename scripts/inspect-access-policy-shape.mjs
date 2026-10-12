@@ -1,3 +1,4 @@
+import { officerPolicyUpdate } from './access-policy.mjs';
 // Read-only diagnostic. Print field names/types, never policy values or credentials.
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = process.env.CLOUDFLARE_API_TOKEN;
@@ -27,3 +28,6 @@ const p = (await list(`access/apps/${apps[0].id}/policies`)).filter(p => p.name 
 if (p.length !== 1) throw Error('Managed policy is missing or ambiguous.');
 const fields = Object.keys(p[0]).sort().map(name => ({name: /^[a-z][a-z0-9_]{0,63}$/.test(name) ? name : '[non-schema key redacted]', type: p[0][name] === null ? 'null' : Array.isArray(p[0][name]) ? 'array' : typeof p[0][name]}));
 console.log(JSON.stringify({readOnly: true, matchedApplication: true, matchedManagedPolicy: true, fields}, null, 2));
+const roles = JSON.parse(process.env.OFFICER_ROLES || '{}');
+const plan = officerPolicyUpdate(p, roles);
+console.log(JSON.stringify({dryRunOnly: true, identifiersAgree: p[0].uid === p[0].id, updateRequired: plan.changed, plannedFields: plan.body ? Object.keys(plan.body).sort() : []}, null, 2));

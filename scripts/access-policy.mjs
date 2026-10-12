@@ -1,13 +1,17 @@
 // Reconcile only our app-specific officer list, never another application's policy.
+import { isDeepStrictEqual } from 'node:util';
 const NAME='Invictus named officers';
 const writable=['name','decision','include','exclude','require','precedence','session_duration','approval_groups','approval_required','isolation_required','mfa_config','purpose_justification_prompt','purpose_justification_required','connection_rules'];
-const metadata=['id','account_id','created_at','updated_at','reusable','app_count'];
+const metadata=['id','uid','account_id','created_at','updated_at','reusable','app_count'];
 export function officerPolicyUpdate(policies,roles){
   if(!Array.isArray(policies))throw Error('Invalid Access policy response.');
   const matches=policies.filter(p=>p.name===NAME);
   if(matches.length!==1)throw Error('The managed officer policy is missing or ambiguous; review Access configuration.');
   const current=matches[0];
   if(typeof current.id!=='string'||!current.id||current.decision!=='allow'||current.reusable===true||current.app_count>1)throw Error('Refusing to rewrite an unmanaged, shared or non-allow Access policy.');
+  // Cloudflare also returns the legacy uid identifier. It is read-only metadata,
+  // not a writable security setting; reject conflicting aliases before any write.
+  if(Object.hasOwn(current,'uid') && (typeof current.uid!=='string' || current.uid!==current.id))throw Error('Access policy identifiers disagree; review before an update.');
   if(!Array.isArray(current.include)||current.include.some(r=>Object.keys(r).length!==1||!r.email||Object.keys(r.email).length!==1||typeof r.email.email!=='string'))throw Error('Managed include conditions were changed; review before replacing them.');
   const emails=Object.keys(roles).sort();
   if(!emails.length||emails.some(s=>s!==s.trim().toLowerCase()||!/^\S+@\S+\.\S+$/.test(s)))throw Error('Invalid officer email list.');
@@ -22,4 +26,17 @@ export function officerPolicyUpdate(policies,roles){
   const body=Object.fromEntries(writable.filter(k=>Object.hasOwn(current,k)).map(k=>[k,structuredClone(current[k])]));
   body.include=emails.map(email=>({email:{email}}));
   return {id:current.id,body,changed:true};
+}
+
+// Verify the provider read-back, not just a successful PUT response.
+export function verifyOfficerPolicyUpdate(update,policies,roles){
+  const after=officerPolicyUpdate(policies,roles);
+  if(after.id!==update.id || after.changed)throw Error('Access officer list was not confirmed after update.');
+  if(update.changed){
+    const current=policies.find(p=>p.id===update.id);
+    for(const [key,value] of Object.entries(update.body)){
+      if(key!=='include' && !isDeepStrictEqual(current[key],value))throw Error('Access policy restrictions were not preserved in the read-back.');
+    }
+  }
+  return true;
 }

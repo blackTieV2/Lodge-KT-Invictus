@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {officerPolicyUpdate} from '../scripts/access-policy.mjs';
+import {officerPolicyUpdate,verifyOfficerPolicyUpdate} from '../scripts/access-policy.mjs';
 const policy=()=>({id:'managed-test',name:'Invictus named officers',decision:'allow',include:[{email:{email:'old@example.invalid'}}],require:[{auth_method:{auth_method:'mfa'}}],exclude:[{email:{email:'blocked@example.invalid'}}],mfa_config:{mfa_disabled:false,session_duration:'1h'},approval_required:true,approval_groups:[{approvals_needed:1,email_addresses:['approver@example.invalid']}],precedence:3,session_duration:'8h'});
 const roles={'admin@example.invalid':'admin','new@example.invalid':'viewer'};
 test('redeployment adds new officers and removes old addresses in the managed policy',()=>{const p=policy(),r=officerPolicyUpdate([p],roles);assert.equal(r.changed,true);assert.deepEqual(r.body.include,[{email:{email:'admin@example.invalid'}},{email:{email:'new@example.invalid'}}]);assert.equal(r.id,p.id);assert.ok(!Object.hasOwn(r.body,'id'));});
@@ -54,4 +54,50 @@ test('missing ambiguous and invalid desired identities remain rejected on no-op 
   assert.throws(()=>officerPolicyUpdate([p,p],roles),/missing or ambiguous/);
   assert.throws(()=>officerPolicyUpdate([p],{}),/Invalid officer email list/);
   assert.throws(()=>officerPolicyUpdate([p],{' ADMIN@example.invalid':'admin'}),/Invalid officer email list/);
+});
+
+// Sanitised shape observed on the real provider: uid aliases id. No real policy
+// identifiers, email addresses or setting values are fixtures.
+const fourRoles={'admin@example.invalid':'admin','treasurer@example.invalid':'treasurer','reader@example.invalid':'viewer','province@example.invalid':'registrar'};
+const legacyPolicy=()=>({...policy(),id:'11111111-1111-4111-8111-111111111111',uid:'11111111-1111-4111-8111-111111111111',reusable:false,created_at:'2026-01-01T00:00:00Z',updated_at:'2026-01-01T00:00:00Z',include:Object.keys(fourRoles).slice(0,3).map(email=>({email:{email}}))});
+test('legacy uid metadata permits the three-to-four officer update without entering PUT',()=>{
+  const p=legacyPolicy(),before=structuredClone(p),u=officerPolicyUpdate([p],fourRoles);
+  assert.equal(u.changed,true);assert.equal(u.body.include.length,4);
+  assert.equal(u.body.include.filter(r=>r.email.email==='province@example.invalid').length,1);
+  for(const k of ['id','uid','created_at','updated_at','reusable'])assert.ok(!Object.hasOwn(u.body,k));
+  for(const k of ['require','exclude','mfa_config','approval_groups','precedence','decision','session_duration'])assert.deepEqual(u.body[k],p[k]);
+  assert.deepEqual(p,before);
+});
+test('uid cannot conceal a conflicting identifier or a malformed value, even on a no-op',()=>{
+  for(const uid of [null,0,'','different-id',{},false])for(const same of [true,false]){
+    const p={...legacyPolicy(),uid};if(same)p.include=Object.keys(fourRoles).map(email=>({email:{email}}));
+    assert.throws(()=>officerPolicyUpdate([p],fourRoles),/identifiers disagree/);
+  }
+});
+test('an unknown security field still prevents a write when uid is present',()=>{
+  assert.throws(()=>officerPolicyUpdate([{...legacyPolicy(),future_restriction:true}],fourRoles),/Unknown Access policy settings/);
+});
+test('matching legacy uid response remains idempotent',()=>{
+  const p=legacyPolicy();p.include=Object.keys(fourRoles).map(email=>({email:{email}}));
+  assert.deepEqual(officerPolicyUpdate([p],fourRoles),{id:p.id,body:null,changed:false});
+});
+test('provider read-back confirms all four officers and the original restrictions',()=>{
+  const p=legacyPolicy(),u=officerPolicyUpdate([p],fourRoles),after={...p,...u.body,updated_at:'2026-01-02T00:00:00Z'};
+  after.include.reverse();assert.equal(verifyOfficerPolicyUpdate(u,[after],fourRoles),true);
+});
+test('a successful PUT without the requested officer, or with an extra officer, is not accepted',()=>{
+  const p=legacyPolicy(),u=officerPolicyUpdate([p],fourRoles);
+  assert.throws(()=>verifyOfficerPolicyUpdate(u,[p],fourRoles),/not confirmed/);
+  const after={...p,...u.body,include:[...u.body.include,{email:{email:'unapproved@example.invalid'}}]};
+  assert.throws(()=>verifyOfficerPolicyUpdate(u,[after],fourRoles),/not confirmed/);
+});
+test('changed security restrictions or swapped target identity fail verification',()=>{
+  const p=legacyPolicy(),u=officerPolicyUpdate([p],fourRoles),after={...p,...u.body};
+  for(const change of [{require:[]},{exclude:[]},{mfa_config:{mfa_disabled:true}},{approval_required:false},{precedence:0}])
+    assert.throws(()=>verifyOfficerPolicyUpdate(u,[{...after,...change}],fourRoles),/not preserved/);
+  assert.throws(()=>verifyOfficerPolicyUpdate(u,[{...after,id:'other',uid:'other'}],fourRoles),/not confirmed/);
+});
+test('read-back of a no-op tolerates response metadata without manufacturing changes',()=>{
+  const p={...legacyPolicy(),include:Object.keys(fourRoles).map(email=>({email:{email}})),future_restriction:{enabled:true}};
+  const u=officerPolicyUpdate([p],fourRoles);assert.equal(verifyOfficerPolicyUpdate(u,[p],fourRoles),true);
 });
