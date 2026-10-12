@@ -2,7 +2,7 @@
 import { readFile, writeFile, rm } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import '../app/core.js';
-import { officerPolicyUpdate } from './access-policy.mjs';
+import { officerPolicyUpdate, verifyOfficerPolicyUpdate } from './access-policy.mjs';
 import { cloudflareTarget, checkDomainOwnership, acceptedAnonymousProbe, ZONE_NAME } from './cloudflare-target.mjs';
 const C=globalThis.Invictus, WRANGLER='wrangler@4.149.0';
 const account=process.env.CLOUDFLARE_ACCOUNT_ID, token=process.env.CLOUDFLARE_API_TOKEN;
@@ -53,6 +53,8 @@ if(!app)app=await cf('access/apps','POST',{type:'self_hosted',name:'Invictus Onl
 if(!app.aud||!app.id)throw Error('Access identifiers were not returned.');
 const policyPath=`access/apps/${app.id}/policies`,update=officerPolicyUpdate(await cf(policyPath),roles);
 if(update.changed)await cf(`${policyPath}/${update.id}`,'PUT',update.body);
+verifyOfficerPolicyUpdate(update,await cf(policyPath),roles);
+console.log('Invictus Access officer policy read-back verified.');
 const dbs=(await list(`accounts/${account}/d1/database?name=invictus-register`)).filter(x=>x.name==='invictus-register');
 if(dbs.length>1)throw Error('Ambiguous database name.');
 const db=dbs[0]||await cf('d1/database','POST',{name:'invictus-register',primary_location_hint:'apac'});

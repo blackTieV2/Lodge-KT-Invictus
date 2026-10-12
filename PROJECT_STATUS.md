@@ -1,25 +1,21 @@
-# Project status — action-first usability correction
+# Project status — officer Access-policy compatibility repair
 
-The owner has successfully signed in and populated the cloud register, then explicitly rejected the passive spreadsheet-like interface. Current authorised work is to make existing follow-ups directly actionable. Cloudflare Workers/D1/Access and GitHub remain the only production services; local copies remain backup-only. No new product approval is required for this usability correction.
+Checkpoint: 12 October 2026. Production remains Cloudflare Workers/D1/Access at invictus.layer-8-labs.com, with GitHub code/deployment and local replication for backups only. The action-first application was deployed at 30588982e9b91f21a75d7f74413fa0e6964cb5e8 in run 38068884340; the owner has populated the private register. Do not re-import or reset data.
 
-## Starting point and target
+## Current authorised task
 
-Starting main `cd21bfb7ea3be1333da70ba282119b3fe5741f32`, deployed in run `38065242882`. The sign-in runtime fix is in production. The user provided a populated-register screenshot; no direct read or edit of production membership data is performed in this change. Isolated branch: `feature/action-centre`. No open PRs were present at recon; the user checkout is untouched.
+The owner explicitly requested adding the Provincial Registrar using the existing registrar role. They saved the four-account OFFICER_ROLES production secret and requested deployment run 38205667121. The PowerShell setup completed. Deployment job 114668491681 passed 47 tests/build and then stopped in access-policy.mjs on an unknown response field, BEFORE the Access policy update, database step or Worker publication. Do not recreate credentials or repeat the role setup.
 
-## Implemented work
+## Verified cause and repair
 
-The Action centre becomes the landing page. Follow-up cards expose Start/Resume, Waiting, Complete, Reopen and Edit task controls. The Registrar/Treasurer queues use the same controls. Completed work has its own filter; it is retained rather than deleted. New follow-ups can be created from the action page or a member record. Due dates, priority, owner and progress notes are editable. Status/overdue cards are real filter buttons. Task search includes the action text/reference as well as names and invoice references.
+Starting main: 30588982e9b91f21a75d7f74413fa0e6964cb5e8. Isolated repair branch: fix/access-policy-shape. A read-only, branch-scoped diagnostic used the existing production credentials, logging ONLY top-level field names/types and booleans. Run 38206000441 identified uid as the extra field. Run 38206342910 confirmed uid equals id and the fixed mapper can construct the requested officer update. Neither run performed a provider write or touched membership data. No account/email/token values were published.
 
-The Members view retains the roll for lookup but adds explicit Open record, Edit and Follow-up buttons. Existing account/membership/KOL editing remains role-controlled. Task completion does not infer or change membership, KOL or balances. Required completion notes, server identity/time, audit/recovery snapshots and conditional versioned saves remain. Stale drafts remain visible on a conflict; failure is not shown as success.
+The mapper now recognises uid only as matching identifier metadata, excludes it from the PUT body and rejects conflicting/malformed aliases. Unknown security fields still stop real writes, and all existing restrictions/shared-policy guards remain. The deploy script re-reads and verifies the officer list and preserved writable policy settings after a write before continuing to publish the Worker role map. No authentication verifier, application UI, role semantics, schema, data, global branding, other project or DNS configuration was modified.
 
-No D1 schema, core file format, loaded register, source documents, sign-in provider/branding, officer-role map, DNS or Cloudflare credentials are changed. No data re-import is required. Source and original ledger fields remain protected.
+The temporary diagnostic workflow/script are removed from the final tree. Five deliverable paths only: policy mapper, deployment verification hook, policy tests, this status and the run record. Baseline module/test/deploy bytes were matched to Git blob hashes before editing. Local policy tests: 22 passed, including all prior 14 tests plus UID and read-back regressions; JavaScript syntax checks passed. Full current-head CI/review and merge must be observed before deploying. No new product approval is needed for this requested account repair.
 
-## Validation and release state
+## Remaining live check
 
-Preparation: 13 action-update unit tests passed, JS syntax and Python test compilation passed. The old member-browser assertions were preserved; its setup now explicitly opens Members after the new action-first landing page. API source outside the narrow action branch/audit label was verified against the original blob. All fixtures are synthetic and independent of the private register.
+The repaired build is not yet deployed at this checkpoint. Deploy the tested merged-main code using the already stored credentials, then verify the actual policy read-back/Worker publication and ask the new officer to use email-code login. Do not claim a live login on another person's behalf. Provider policy update and Worker publication are separate operations, so a later deployment failure requires inspecting both states rather than blindly rerunning setup. Never weaken sign-in to work around this.
 
-Full actual-API browser acceptance and existing workflows must pass in GitHub CI before merge. New acceptance covers start/wait/complete/reopen, required reference, task edit/reassignment/creation, filtering, persistent reopen/second-user read, cross-role denial, conflict preservation, failure without false completion, audit/recovery, mobile controls, and unchanged member/evidence data after task operations. A successful synthetic test is not a direct production record check.
-
-The assistant runtime could not clone GitHub because DNS failed; isolated text preparation and connected Git API writes are used. No local server is required of the owner. Deployment remains the existing manually triggered GitHub workflow on main. This checkpoint does not claim the new UI is live. Before release, read the actual CI results and update the PR with the verified commit and evidence.
-
-Next: complete tests/review, merge the correction, then deploy current main with existing credentials. Keep all current production data. Backup activation/independent restore and any separate Access branding request remain separate; do not change another project to fix this interface.
+Backup activation and independent restore remain separate pending work. Private records stay outside the public repository. The canonical manual deploy workflow remains unchanged; a bounded recovery execution must use verified merged-main source and the existing production environment, not unreviewed PR code.

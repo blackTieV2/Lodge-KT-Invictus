@@ -1,0 +1,15 @@
+# Officer access update — bounded diagnostic and repair
+
+Authority: owner explicitly requested adding the Provincial Registrar, then saved the four-account OFFICER_ROLES secret and dispatched run 38205667121. No real email address or credential belongs in this public task record.
+
+Starting live main: 30588982e9b91f21a75d7f74413fa0e6964cb5e8, tree c711400c3738a051f2da20b29fda920046f2dc85; repository public and no open PRs. Read AGENTS.md, current status/context, Cloudflare-only design, access-policy module and tests. Failed deployment job 114668491681 passed 47 tests and asset build, then stopped in officerPolicyUpdate on unknown policy fields BEFORE policy PUT, D1 or Worker changes. The prior service remains deployed.
+
+Read-only recon: branch diagnostic 38206000441 / 114669519769 identified the legacy uid field. Fixed-mapper dry run 38206342910 / 114670556480 verified uid equals id and a real officer-list change is required. Only field names/types and booleans were logged; no policy values or credentials were exposed. Both calls performed GETs only, using the existing production environment; no membership database was read or written. The branch-only workflow and diagnostic script are removed before merge.
+
+Production correction: add matching uid to identifier metadata, reject mismatched aliases, preserve unknown-security/shared-policy guards; verify the provider read-back matches the target identities and all original writable restrictions before continuing with deployment. No other project policy is changed. Tests use synthetic addresses/identifiers, not exported private payloads.
+
+Local preparation: fresh /mnt/data/invictus-access-fix source directory, no user worktree. GitHub DNS failed before any checkout; connected Git API writes use the verified isolated branch. Baseline policy, test and deployment files matched Git blob hashes dffeb8929fe48c2e1e83311c88998980a65aa58d, 4f56db83247fecb0ef1f1205c16028fb7e5fe7cc and 5adc20f546e55bf5837e455bbcd27990fa7babd0. All 22 policy tests and syntax checks passed locally. Current-head CI, review, merge and production execution still require live verification.
+
+Rollback: revert code through a reviewed change; never reset D1 or re-import records. Current authorisation is for the requested fourth officer, not account administration for other projects. Keep existing role assignments and credentials. The existing manual deploy workflow is unchanged. Any bounded recovery execution must pin the verified merged-main source and use the existing production environment; production success does not certify the new officer's first login.
+
+API references reviewed: https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/subresources/policies/methods/list/ and https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/subresources/policies/methods/update/ . Live diagnostics, not guessed SDK response fields, establish uid compatibility.
